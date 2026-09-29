@@ -1,0 +1,2702 @@
+[
+  {
+    "name": "DT-01",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.8357,
+      "lng": 77.6557
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3116,
+    "purchaseDate": "2021-06-20",
+    "operatingHoursLast30Days": 64.6,
+    "idleHoursLast30Days": 149.9,
+    "totalJobsAssigned": 21,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-26",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-01",
+    "type": "excavator",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03015,
+      "lng": 77.59904
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5218,
+    "purchaseDate": "2019-08-05",
+    "operatingHoursLast30Days": 132.2,
+    "idleHoursLast30Days": 146.0,
+    "totalJobsAssigned": 22,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-14",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-02",
+    "type": "excavator",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10466,
+      "lng": 77.59311
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3879,
+    "purchaseDate": "2022-03-05",
+    "operatingHoursLast30Days": 51.1,
+    "idleHoursLast30Days": 191.9,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-16",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-01",
+    "type": "concrete_mixer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96304,
+      "lng": 77.70569
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2630,
+    "purchaseDate": "2019-09-23",
+    "operatingHoursLast30Days": 127.2,
+    "idleHoursLast30Days": 194.9,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-09",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-03",
+    "type": "excavator",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97303,
+      "lng": 77.75546
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4638,
+    "purchaseDate": "2024-05-17",
+    "operatingHoursLast30Days": 217.0,
+    "idleHoursLast30Days": 172.5,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-06-08",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-01",
+    "type": "crane",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96094,
+      "lng": 77.70477
+    },
+    "availability": "available",
+    "operatingCostPerDay": 8005,
+    "purchaseDate": "2021-12-11",
+    "operatingHoursLast30Days": 34.3,
+    "idleHoursLast30Days": 130.6,
+    "totalJobsAssigned": 17,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-07-12",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-02",
+    "type": "dump_truck",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03919,
+      "lng": 77.60386
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2646,
+    "purchaseDate": "2025-06-16",
+    "operatingHoursLast30Days": 175.2,
+    "idleHoursLast30Days": 53.5,
+    "totalJobsAssigned": 1,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-07-03",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-02",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90195,
+      "lng": 77.58508
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1785,
+    "purchaseDate": "2019-11-27",
+    "operatingHoursLast30Days": 196.9,
+    "idleHoursLast30Days": 132.1,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-06-06",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-03",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.25166,
+      "lng": 77.71079
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2186,
+    "purchaseDate": "2024-06-26",
+    "operatingHoursLast30Days": 63.9,
+    "idleHoursLast30Days": 199.5,
+    "totalJobsAssigned": 16,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-08-26",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-04",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24563,
+      "lng": 77.7105
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3762,
+    "purchaseDate": "2018-02-12",
+    "operatingHoursLast30Days": 139.2,
+    "idleHoursLast30Days": 98.9,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-14",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-03",
+    "type": "concrete_mixer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96227,
+      "lng": 77.6979
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2978,
+    "purchaseDate": "2020-08-02",
+    "operatingHoursLast30Days": 78.7,
+    "idleHoursLast30Days": 40.0,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-04",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-04",
+    "type": "concrete_mixer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85261,
+      "lng": 77.65617
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1830,
+    "purchaseDate": "2026-03-12",
+    "operatingHoursLast30Days": 147.8,
+    "idleHoursLast30Days": 125.7,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-04-27",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-01",
+    "type": "loader",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96204,
+      "lng": 77.74726
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2993,
+    "purchaseDate": "2025-03-29",
+    "operatingHoursLast30Days": 217.1,
+    "idleHoursLast30Days": 163.3,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-20",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-04",
+    "type": "excavator",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09327,
+      "lng": 77.59581
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4367,
+    "purchaseDate": "2018-03-16",
+    "operatingHoursLast30Days": 130.0,
+    "idleHoursLast30Days": 60.4,
+    "totalJobsAssigned": 19,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-07-20",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-05",
+    "type": "dump_truck",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90646,
+      "lng": 77.58545
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3204,
+    "purchaseDate": "2019-08-08",
+    "operatingHoursLast30Days": 44.2,
+    "idleHoursLast30Days": 52.7,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-13",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-05",
+    "type": "excavator",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96438,
+      "lng": 77.75811
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 5488,
+    "purchaseDate": "2024-09-19",
+    "operatingHoursLast30Days": 191.9,
+    "idleHoursLast30Days": 23.5,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-07-02",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-05",
+    "type": "concrete_mixer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89366,
+      "lng": 77.63146
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2225,
+    "purchaseDate": "2020-12-18",
+    "operatingHoursLast30Days": 101.4,
+    "idleHoursLast30Days": 27.9,
+    "totalJobsAssigned": 21,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-05-27",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-06",
+    "type": "excavator",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.83641,
+      "lng": 77.66476
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5696,
+    "purchaseDate": "2021-06-20",
+    "operatingHoursLast30Days": 180.1,
+    "idleHoursLast30Days": 30.8,
+    "totalJobsAssigned": 6,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-05",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-02",
+    "type": "loader",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.04299,
+      "lng": 77.58851
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3835,
+    "purchaseDate": "2025-02-25",
+    "operatingHoursLast30Days": 181.6,
+    "idleHoursLast30Days": 172.6,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-09-06",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CR-02",
+    "type": "crane",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09883,
+      "lng": 77.59593
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 6017,
+    "purchaseDate": "2017-05-29",
+    "operatingHoursLast30Days": 192.9,
+    "idleHoursLast30Days": 181.5,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-07-04",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-01",
+    "type": "bulldozer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24763,
+      "lng": 77.71741
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4777,
+    "purchaseDate": "2025-07-18",
+    "operatingHoursLast30Days": 176.7,
+    "idleHoursLast30Days": 135.8,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-07-16",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-06",
+    "type": "concrete_mixer",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97476,
+      "lng": 77.74114
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1616,
+    "purchaseDate": "2024-02-12",
+    "operatingHoursLast30Days": 136.8,
+    "idleHoursLast30Days": 105.5,
+    "totalJobsAssigned": 16,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-20",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-07",
+    "type": "excavator",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03358,
+      "lng": 77.60583
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3835,
+    "purchaseDate": "2023-04-11",
+    "operatingHoursLast30Days": 133.9,
+    "idleHoursLast30Days": 120.0,
+    "totalJobsAssigned": 1,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-21",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-06",
+    "type": "dump_truck",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90247,
+      "lng": 77.58302
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2148,
+    "purchaseDate": "2019-03-27",
+    "operatingHoursLast30Days": 154.3,
+    "idleHoursLast30Days": 67.0,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-07-13",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-08",
+    "type": "excavator",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84595,
+      "lng": 77.66032
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 5013,
+    "purchaseDate": "2021-04-15",
+    "operatingHoursLast30Days": 46.5,
+    "idleHoursLast30Days": 76.3,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-07-31",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-07",
+    "type": "dump_truck",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95913,
+      "lng": 77.71084
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3358,
+    "purchaseDate": "2023-03-27",
+    "operatingHoursLast30Days": 150.8,
+    "idleHoursLast30Days": 11.5,
+    "totalJobsAssigned": 17,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-23",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-09",
+    "type": "excavator",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09615,
+      "lng": 77.5984
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4581,
+    "purchaseDate": "2023-05-21",
+    "operatingHoursLast30Days": 163.5,
+    "idleHoursLast30Days": 48.7,
+    "totalJobsAssigned": 20,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-05-07",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-10",
+    "type": "excavator",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84789,
+      "lng": 77.66679
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4572,
+    "purchaseDate": "2021-03-31",
+    "operatingHoursLast30Days": 28.8,
+    "idleHoursLast30Days": 73.4,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-07",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-03",
+    "type": "loader",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96204,
+      "lng": 77.7589
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3256,
+    "purchaseDate": "2024-07-16",
+    "operatingHoursLast30Days": 158.2,
+    "idleHoursLast30Days": 38.3,
+    "totalJobsAssigned": 1,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-04-21",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-11",
+    "type": "excavator",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95419,
+      "lng": 77.70976
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4522,
+    "purchaseDate": "2022-03-27",
+    "operatingHoursLast30Days": 214.4,
+    "idleHoursLast30Days": 17.6,
+    "totalJobsAssigned": 11,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-14",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-04",
+    "type": "loader",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10922,
+      "lng": 77.59103
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2550,
+    "purchaseDate": "2022-06-23",
+    "operatingHoursLast30Days": 52.5,
+    "idleHoursLast30Days": 162.0,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-06-07",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-05",
+    "type": "loader",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03084,
+      "lng": 77.60275
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2908,
+    "purchaseDate": "2022-10-11",
+    "operatingHoursLast30Days": 41.6,
+    "idleHoursLast30Days": 175.7,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-12",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-03",
+    "type": "crane",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.02597,
+      "lng": 77.59086
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 8876,
+    "purchaseDate": "2021-09-19",
+    "operatingHoursLast30Days": 85.7,
+    "idleHoursLast30Days": 174.2,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-05-02",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-07",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91648,
+      "lng": 77.57741
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 1722,
+    "purchaseDate": "2022-04-29",
+    "operatingHoursLast30Days": 214.1,
+    "idleHoursLast30Days": 43.9,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-05-21",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "BD-02",
+    "type": "bulldozer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24582,
+      "lng": 77.71303
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 6903,
+    "purchaseDate": "2020-05-15",
+    "operatingHoursLast30Days": 97.0,
+    "idleHoursLast30Days": 119.6,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-09-09",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-08",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03278,
+      "lng": 77.5884
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1755,
+    "purchaseDate": "2020-07-06",
+    "operatingHoursLast30Days": 152.8,
+    "idleHoursLast30Days": 72.7,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-25",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-06",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90575,
+      "lng": 77.58101
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4032,
+    "purchaseDate": "2019-10-26",
+    "operatingHoursLast30Days": 45.5,
+    "idleHoursLast30Days": 89.9,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-23",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-09",
+    "type": "concrete_mixer",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96588,
+      "lng": 77.7442
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2404,
+    "purchaseDate": "2020-06-20",
+    "operatingHoursLast30Days": 177.2,
+    "idleHoursLast30Days": 125.3,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-07-17",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-08",
+    "type": "dump_truck",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10388,
+      "lng": 77.59198
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3538,
+    "purchaseDate": "2022-09-20",
+    "operatingHoursLast30Days": 152.8,
+    "idleHoursLast30Days": 127.7,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-06-15",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CR-04",
+    "type": "crane",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09119,
+      "lng": 77.5912
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 9395,
+    "purchaseDate": "2024-01-08",
+    "operatingHoursLast30Days": 115.0,
+    "idleHoursLast30Days": 171.5,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-04-15",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-07",
+    "type": "loader",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89679,
+      "lng": 77.62495
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4094,
+    "purchaseDate": "2024-03-24",
+    "operatingHoursLast30Days": 157.5,
+    "idleHoursLast30Days": 179.6,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-15",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-09",
+    "type": "dump_truck",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.8898,
+      "lng": 77.62698
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3367,
+    "purchaseDate": "2019-07-11",
+    "operatingHoursLast30Days": 189.7,
+    "idleHoursLast30Days": 96.7,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-04-19",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-08",
+    "type": "loader",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.25031,
+      "lng": 77.71376
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3030,
+    "purchaseDate": "2023-02-03",
+    "operatingHoursLast30Days": 199.4,
+    "idleHoursLast30Days": 151.3,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-06-20",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-10",
+    "type": "concrete_mixer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90133,
+      "lng": 77.62749
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2154,
+    "purchaseDate": "2024-08-25",
+    "operatingHoursLast30Days": 35.5,
+    "idleHoursLast30Days": 64.3,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-20",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-09",
+    "type": "loader",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10483,
+      "lng": 77.58758
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2923,
+    "purchaseDate": "2017-07-26",
+    "operatingHoursLast30Days": 101.5,
+    "idleHoursLast30Days": 113.1,
+    "totalJobsAssigned": 13,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-02",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-10",
+    "type": "dump_truck",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97693,
+      "lng": 77.75531
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3543,
+    "purchaseDate": "2020-03-01",
+    "operatingHoursLast30Days": 96.1,
+    "idleHoursLast30Days": 11.1,
+    "totalJobsAssigned": 11,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-05-25",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-11",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03526,
+      "lng": 77.59246
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2328,
+    "purchaseDate": "2016-10-10",
+    "operatingHoursLast30Days": 117.1,
+    "idleHoursLast30Days": 83.9,
+    "totalJobsAssigned": 21,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-07-29",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CR-05",
+    "type": "crane",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97794,
+      "lng": 77.75184
+    },
+    "availability": "available",
+    "operatingCostPerDay": 9782,
+    "purchaseDate": "2023-04-14",
+    "operatingHoursLast30Days": 152.6,
+    "idleHoursLast30Days": 26.0,
+    "totalJobsAssigned": 13,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-09-03",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CR-06",
+    "type": "crane",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89534,
+      "lng": 77.63722
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6670,
+    "purchaseDate": "2017-10-19",
+    "operatingHoursLast30Days": 95.8,
+    "idleHoursLast30Days": 152.9,
+    "totalJobsAssigned": 13,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-09-05",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-03",
+    "type": "bulldozer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.0385,
+      "lng": 77.60262
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4083,
+    "purchaseDate": "2023-07-11",
+    "operatingHoursLast30Days": 150.4,
+    "idleHoursLast30Days": 153.3,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-01",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-11",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84648,
+      "lng": 77.65456
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3243,
+    "purchaseDate": "2017-06-24",
+    "operatingHoursLast30Days": 159.9,
+    "idleHoursLast30Days": 155.7,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-11",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "BD-04",
+    "type": "bulldozer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84677,
+      "lng": 77.66878
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 6928,
+    "purchaseDate": "2019-07-24",
+    "operatingHoursLast30Days": 135.2,
+    "idleHoursLast30Days": 182.5,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-08-31",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-12",
+    "type": "dump_truck",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.02754,
+      "lng": 77.60245
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3159,
+    "purchaseDate": "2020-03-23",
+    "operatingHoursLast30Days": 190.1,
+    "idleHoursLast30Days": 124.1,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-07-27",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "BD-05",
+    "type": "bulldozer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84532,
+      "lng": 77.65702
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5483,
+    "purchaseDate": "2018-04-08",
+    "operatingHoursLast30Days": 189.9,
+    "idleHoursLast30Days": 166.2,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-05-15",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CR-07",
+    "type": "crane",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95922,
+      "lng": 77.70949
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 8198,
+    "purchaseDate": "2016-11-19",
+    "operatingHoursLast30Days": 174.9,
+    "idleHoursLast30Days": 98.3,
+    "totalJobsAssigned": 23,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-09",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-06",
+    "type": "bulldozer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89368,
+      "lng": 77.63129
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6024,
+    "purchaseDate": "2020-09-24",
+    "operatingHoursLast30Days": 142.1,
+    "idleHoursLast30Days": 82.0,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-25",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-07",
+    "type": "bulldozer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90329,
+      "lng": 77.58702
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4350,
+    "purchaseDate": "2021-08-23",
+    "operatingHoursLast30Days": 196.0,
+    "idleHoursLast30Days": 115.6,
+    "totalJobsAssigned": 16,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-09",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CR-08",
+    "type": "crane",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90172,
+      "lng": 77.63182
+    },
+    "availability": "available",
+    "operatingCostPerDay": 11667,
+    "purchaseDate": "2018-10-03",
+    "operatingHoursLast30Days": 178.6,
+    "idleHoursLast30Days": 27.7,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-08-01",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-10",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90621,
+      "lng": 77.59002
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3014,
+    "purchaseDate": "2018-02-10",
+    "operatingHoursLast30Days": 86.2,
+    "idleHoursLast30Days": 143.5,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-25",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-12",
+    "type": "excavator",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09453,
+      "lng": 77.60107
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5944,
+    "purchaseDate": "2016-11-11",
+    "operatingHoursLast30Days": 75.3,
+    "idleHoursLast30Days": 122.0,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-15",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-09",
+    "type": "crane",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90129,
+      "lng": 77.57538
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 8393,
+    "purchaseDate": "2019-01-18",
+    "operatingHoursLast30Days": 126.8,
+    "idleHoursLast30Days": 62.1,
+    "totalJobsAssigned": 1,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-08",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-11",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85265,
+      "lng": 77.66168
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3017,
+    "purchaseDate": "2016-12-24",
+    "operatingHoursLast30Days": 113.9,
+    "idleHoursLast30Days": 93.7,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-11",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-12",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84674,
+      "lng": 77.66393
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3008,
+    "purchaseDate": "2017-08-17",
+    "operatingHoursLast30Days": 50.3,
+    "idleHoursLast30Days": 164.1,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-30",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-12",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.04101,
+      "lng": 77.59461
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2125,
+    "purchaseDate": "2025-07-11",
+    "operatingHoursLast30Days": 201.7,
+    "idleHoursLast30Days": 66.5,
+    "totalJobsAssigned": 18,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-04-04",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-13",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85415,
+      "lng": 77.65436
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2355,
+    "purchaseDate": "2024-06-11",
+    "operatingHoursLast30Days": 62.2,
+    "idleHoursLast30Days": 135.5,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-08-21",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-13",
+    "type": "loader",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89463,
+      "lng": 77.62663
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3907,
+    "purchaseDate": "2017-05-14",
+    "operatingHoursLast30Days": 161.4,
+    "idleHoursLast30Days": 143.6,
+    "totalJobsAssigned": 14,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-07",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-13",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.034,
+      "lng": 77.59789
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 1622,
+    "purchaseDate": "2019-07-12",
+    "operatingHoursLast30Days": 149.5,
+    "idleHoursLast30Days": 182.6,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-01",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-14",
+    "type": "concrete_mixer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95568,
+      "lng": 77.70047
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2605,
+    "purchaseDate": "2025-04-19",
+    "operatingHoursLast30Days": 80.8,
+    "idleHoursLast30Days": 86.5,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-05-20",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-14",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90977,
+      "lng": 77.57562
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4447,
+    "purchaseDate": "2018-08-30",
+    "operatingHoursLast30Days": 65.8,
+    "idleHoursLast30Days": 138.1,
+    "totalJobsAssigned": 18,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-04",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-15",
+    "type": "concrete_mixer",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97506,
+      "lng": 77.7435
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2698,
+    "purchaseDate": "2025-03-06",
+    "operatingHoursLast30Days": 123.8,
+    "idleHoursLast30Days": 94.0,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-05-07",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-15",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90412,
+      "lng": 77.57719
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3856,
+    "purchaseDate": "2021-02-06",
+    "operatingHoursLast30Days": 52.2,
+    "idleHoursLast30Days": 88.2,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-31",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-08",
+    "type": "bulldozer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90002,
+      "lng": 77.59055
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6693,
+    "purchaseDate": "2021-07-26",
+    "operatingHoursLast30Days": 193.0,
+    "idleHoursLast30Days": 166.7,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-05-14",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-16",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91015,
+      "lng": 77.58507
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1768,
+    "purchaseDate": "2018-05-15",
+    "operatingHoursLast30Days": 108.4,
+    "idleHoursLast30Days": 19.8,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-05-20",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-13",
+    "type": "excavator",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.0397,
+      "lng": 77.59322
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3964,
+    "purchaseDate": "2018-12-08",
+    "operatingHoursLast30Days": 22.7,
+    "idleHoursLast30Days": 87.5,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-08-10",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-16",
+    "type": "loader",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95708,
+      "lng": 77.69657
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3628,
+    "purchaseDate": "2024-01-24",
+    "operatingHoursLast30Days": 186.9,
+    "idleHoursLast30Days": 196.2,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-07-22",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-17",
+    "type": "concrete_mixer",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10798,
+      "lng": 77.59182
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2047,
+    "purchaseDate": "2018-01-22",
+    "operatingHoursLast30Days": 178.0,
+    "idleHoursLast30Days": 88.8,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-04",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-18",
+    "type": "concrete_mixer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90611,
+      "lng": 77.63093
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2272,
+    "purchaseDate": "2024-02-01",
+    "operatingHoursLast30Days": 116.9,
+    "idleHoursLast30Days": 73.2,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-19",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-10",
+    "type": "crane",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23837,
+      "lng": 77.71831
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 9123,
+    "purchaseDate": "2020-08-24",
+    "operatingHoursLast30Days": 28.7,
+    "idleHoursLast30Days": 151.5,
+    "totalJobsAssigned": 22,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-08-02",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-11",
+    "type": "crane",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91509,
+      "lng": 77.59258
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 11918,
+    "purchaseDate": "2018-11-10",
+    "operatingHoursLast30Days": 108.1,
+    "idleHoursLast30Days": 109.9,
+    "totalJobsAssigned": 14,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-19",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-14",
+    "type": "excavator",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90443,
+      "lng": 77.6273
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4845,
+    "purchaseDate": "2021-12-09",
+    "operatingHoursLast30Days": 144.7,
+    "idleHoursLast30Days": 85.5,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-04-26",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-14",
+    "type": "dump_truck",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90625,
+      "lng": 77.62272
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3529,
+    "purchaseDate": "2025-02-04",
+    "operatingHoursLast30Days": 33.7,
+    "idleHoursLast30Days": 129.9,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-07-16",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-15",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84407,
+      "lng": 77.66408
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2600,
+    "purchaseDate": "2021-05-15",
+    "operatingHoursLast30Days": 200.7,
+    "idleHoursLast30Days": 18.7,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-06",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-19",
+    "type": "concrete_mixer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24502,
+      "lng": 77.71865
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2899,
+    "purchaseDate": "2019-08-30",
+    "operatingHoursLast30Days": 54.0,
+    "idleHoursLast30Days": 25.0,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-08",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-17",
+    "type": "loader",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95609,
+      "lng": 77.70444
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3619,
+    "purchaseDate": "2021-03-31",
+    "operatingHoursLast30Days": 199.8,
+    "idleHoursLast30Days": 98.4,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-08-31",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-20",
+    "type": "concrete_mixer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95968,
+      "lng": 77.69959
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2489,
+    "purchaseDate": "2021-12-03",
+    "operatingHoursLast30Days": 70.0,
+    "idleHoursLast30Days": 170.6,
+    "totalJobsAssigned": 6,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-08-10",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-21",
+    "type": "concrete_mixer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96675,
+      "lng": 77.697
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2659,
+    "purchaseDate": "2019-05-27",
+    "operatingHoursLast30Days": 215.6,
+    "idleHoursLast30Days": 135.1,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-28",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "BD-09",
+    "type": "bulldozer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03764,
+      "lng": 77.59405
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6952,
+    "purchaseDate": "2019-02-26",
+    "operatingHoursLast30Days": 147.3,
+    "idleHoursLast30Days": 128.0,
+    "totalJobsAssigned": 21,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-08-05",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-16",
+    "type": "dump_truck",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96598,
+      "lng": 77.74882
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2669,
+    "purchaseDate": "2024-03-25",
+    "operatingHoursLast30Days": 135.9,
+    "idleHoursLast30Days": 149.1,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-05-26",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-22",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90832,
+      "lng": 77.59337
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2104,
+    "purchaseDate": "2017-03-07",
+    "operatingHoursLast30Days": 186.1,
+    "idleHoursLast30Days": 58.8,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-06-15",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-15",
+    "type": "excavator",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10578,
+      "lng": 77.59081
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5782,
+    "purchaseDate": "2017-05-02",
+    "operatingHoursLast30Days": 155.3,
+    "idleHoursLast30Days": 138.1,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-08-17",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-10",
+    "type": "bulldozer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.8443,
+      "lng": 77.66366
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4443,
+    "purchaseDate": "2020-11-29",
+    "operatingHoursLast30Days": 154.5,
+    "idleHoursLast30Days": 121.1,
+    "totalJobsAssigned": 20,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-07-12",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-23",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91601,
+      "lng": 77.57953
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2829,
+    "purchaseDate": "2024-08-19",
+    "operatingHoursLast30Days": 32.6,
+    "idleHoursLast30Days": 166.5,
+    "totalJobsAssigned": 22,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-11",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-16",
+    "type": "excavator",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96682,
+      "lng": 77.69342
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5019,
+    "purchaseDate": "2021-07-02",
+    "operatingHoursLast30Days": 67.0,
+    "idleHoursLast30Days": 112.1,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-04-24",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-17",
+    "type": "dump_truck",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10841,
+      "lng": 77.5994
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3413,
+    "purchaseDate": "2021-03-24",
+    "operatingHoursLast30Days": 186.7,
+    "idleHoursLast30Days": 127.0,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-16",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-12",
+    "type": "crane",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.89969,
+      "lng": 77.58881
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 9261,
+    "purchaseDate": "2024-10-30",
+    "operatingHoursLast30Days": 128.9,
+    "idleHoursLast30Days": 195.8,
+    "totalJobsAssigned": 11,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-23",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-18",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84846,
+      "lng": 77.66303
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2998,
+    "purchaseDate": "2023-11-25",
+    "operatingHoursLast30Days": 139.4,
+    "idleHoursLast30Days": 14.1,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-06-29",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-24",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.03723,
+      "lng": 77.60326
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1505,
+    "purchaseDate": "2024-09-28",
+    "operatingHoursLast30Days": 66.6,
+    "idleHoursLast30Days": 157.1,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-03",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-13",
+    "type": "crane",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84842,
+      "lng": 77.65072
+    },
+    "availability": "available",
+    "operatingCostPerDay": 8652,
+    "purchaseDate": "2023-03-24",
+    "operatingHoursLast30Days": 23.0,
+    "idleHoursLast30Days": 160.1,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-18",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-18",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24422,
+      "lng": 77.71771
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2223,
+    "purchaseDate": "2023-09-19",
+    "operatingHoursLast30Days": 115.2,
+    "idleHoursLast30Days": 157.8,
+    "totalJobsAssigned": 16,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-05-04",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-17",
+    "type": "excavator",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.95606,
+      "lng": 77.71038
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3942,
+    "purchaseDate": "2025-05-17",
+    "operatingHoursLast30Days": 32.2,
+    "idleHoursLast30Days": 101.0,
+    "totalJobsAssigned": 12,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-05-19",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-11",
+    "type": "bulldozer",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09201,
+      "lng": 77.5918
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6446,
+    "purchaseDate": "2021-02-10",
+    "operatingHoursLast30Days": 146.6,
+    "idleHoursLast30Days": 114.2,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-06-26",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-19",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85106,
+      "lng": 77.65249
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4272,
+    "purchaseDate": "2021-02-19",
+    "operatingHoursLast30Days": 150.9,
+    "idleHoursLast30Days": 176.8,
+    "totalJobsAssigned": 17,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-07-16",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-20",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91425,
+      "lng": 77.58307
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3022,
+    "purchaseDate": "2018-07-01",
+    "operatingHoursLast30Days": 165.9,
+    "idleHoursLast30Days": 69.4,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-08-01",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "EX-18",
+    "type": "excavator",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85184,
+      "lng": 77.65206
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5778,
+    "purchaseDate": "2019-11-26",
+    "operatingHoursLast30Days": 39.3,
+    "idleHoursLast30Days": 150.4,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-26",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-19",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84342,
+      "lng": 77.66767
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2589,
+    "purchaseDate": "2022-04-04",
+    "operatingHoursLast30Days": 208.2,
+    "idleHoursLast30Days": 90.4,
+    "totalJobsAssigned": 23,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-22",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-25",
+    "type": "concrete_mixer",
+    "location": "Site D - Hebbal",
+    "coordinates": {
+      "lat": 13.02859,
+      "lng": 77.59664
+    },
+    "availability": "available",
+    "operatingCostPerDay": 1735,
+    "purchaseDate": "2017-02-23",
+    "operatingHoursLast30Days": 189.5,
+    "idleHoursLast30Days": 76.5,
+    "totalJobsAssigned": 17,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-07-14",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-26",
+    "type": "concrete_mixer",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97198,
+      "lng": 77.75316
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2132,
+    "purchaseDate": "2026-02-17",
+    "operatingHoursLast30Days": 158.7,
+    "idleHoursLast30Days": 15.5,
+    "totalJobsAssigned": 8,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-12",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-14",
+    "type": "crane",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23509,
+      "lng": 77.71762
+    },
+    "availability": "available",
+    "operatingCostPerDay": 9081,
+    "purchaseDate": "2022-05-18",
+    "operatingHoursLast30Days": 214.4,
+    "idleHoursLast30Days": 27.4,
+    "totalJobsAssigned": 16,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-05-16",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-12",
+    "type": "bulldozer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91324,
+      "lng": 77.58645
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6530,
+    "purchaseDate": "2025-04-14",
+    "operatingHoursLast30Days": 37.0,
+    "idleHoursLast30Days": 20.0,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-15",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-20",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24341,
+      "lng": 77.71164
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2880,
+    "purchaseDate": "2018-08-06",
+    "operatingHoursLast30Days": 74.6,
+    "idleHoursLast30Days": 153.4,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-04",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-21",
+    "type": "loader",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.94781,
+      "lng": 77.69901
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4071,
+    "purchaseDate": "2023-05-03",
+    "operatingHoursLast30Days": 139.9,
+    "idleHoursLast30Days": 11.5,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-04",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "EX-19",
+    "type": "excavator",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96975,
+      "lng": 77.74861
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5788,
+    "purchaseDate": "2025-05-23",
+    "operatingHoursLast30Days": 45.8,
+    "idleHoursLast30Days": 111.2,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-11",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-21",
+    "type": "dump_truck",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96852,
+      "lng": 77.7492
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2828,
+    "purchaseDate": "2022-12-15",
+    "operatingHoursLast30Days": 35.6,
+    "idleHoursLast30Days": 69.5,
+    "totalJobsAssigned": 13,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-05-26",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "EX-20",
+    "type": "excavator",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90114,
+      "lng": 77.59405
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5288,
+    "purchaseDate": "2021-04-25",
+    "operatingHoursLast30Days": 112.0,
+    "idleHoursLast30Days": 141.0,
+    "totalJobsAssigned": 11,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-09",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-27",
+    "type": "concrete_mixer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84312,
+      "lng": 77.65641
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2545,
+    "purchaseDate": "2020-04-01",
+    "operatingHoursLast30Days": 87.9,
+    "idleHoursLast30Days": 73.3,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-11",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "BD-13",
+    "type": "bulldozer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91225,
+      "lng": 77.59148
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4808,
+    "purchaseDate": "2024-06-26",
+    "operatingHoursLast30Days": 183.0,
+    "idleHoursLast30Days": 54.9,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-06-24",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-22",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.83874,
+      "lng": 77.66566
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2919,
+    "purchaseDate": "2018-12-28",
+    "operatingHoursLast30Days": 118.8,
+    "idleHoursLast30Days": 153.3,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-04-18",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-28",
+    "type": "concrete_mixer",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.91498,
+      "lng": 77.58764
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2120,
+    "purchaseDate": "2022-04-03",
+    "operatingHoursLast30Days": 50.2,
+    "idleHoursLast30Days": 23.0,
+    "totalJobsAssigned": 14,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-08-26",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-14",
+    "type": "bulldozer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89784,
+      "lng": 77.62314
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6433,
+    "purchaseDate": "2021-01-04",
+    "operatingHoursLast30Days": 186.3,
+    "idleHoursLast30Days": 24.6,
+    "totalJobsAssigned": 2,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-06-03",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-23",
+    "type": "dump_truck",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.96879,
+      "lng": 77.7562
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2308,
+    "purchaseDate": "2025-01-15",
+    "operatingHoursLast30Days": 150.4,
+    "idleHoursLast30Days": 71.1,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-14",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "BD-15",
+    "type": "bulldozer",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84529,
+      "lng": 77.65365
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6141,
+    "purchaseDate": "2022-02-13",
+    "operatingHoursLast30Days": 69.5,
+    "idleHoursLast30Days": 93.2,
+    "totalJobsAssigned": 14,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-31",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "BD-16",
+    "type": "bulldozer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24188,
+      "lng": 77.70957
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4269,
+    "purchaseDate": "2019-12-11",
+    "operatingHoursLast30Days": 139.6,
+    "idleHoursLast30Days": 160.0,
+    "totalJobsAssigned": 20,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-16",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-17",
+    "type": "bulldozer",
+    "location": "Site E - Marathahalli",
+    "coordinates": {
+      "lat": 12.96137,
+      "lng": 77.70423
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6386,
+    "purchaseDate": "2022-04-12",
+    "operatingHoursLast30Days": 201.3,
+    "idleHoursLast30Days": 175.9,
+    "totalJobsAssigned": 10,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-04",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-24",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23628,
+      "lng": 77.71698
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2672,
+    "purchaseDate": "2018-04-27",
+    "operatingHoursLast30Days": 36.9,
+    "idleHoursLast30Days": 116.2,
+    "totalJobsAssigned": 20,
+    "breakdownCount": 6,
+    "lastServiceDate": "2026-06-16",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "DT-25",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84812,
+      "lng": 77.65867
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2699,
+    "purchaseDate": "2023-08-30",
+    "operatingHoursLast30Days": 92.4,
+    "idleHoursLast30Days": 78.9,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-07-22",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CR-15",
+    "type": "crane",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84112,
+      "lng": 77.66596
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6309,
+    "purchaseDate": "2017-08-10",
+    "operatingHoursLast30Days": 121.5,
+    "idleHoursLast30Days": 112.6,
+    "totalJobsAssigned": 23,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-06-15",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CM-29",
+    "type": "concrete_mixer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23679,
+      "lng": 77.70642
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2396,
+    "purchaseDate": "2022-02-11",
+    "operatingHoursLast30Days": 158.6,
+    "idleHoursLast30Days": 128.7,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-07-19",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CR-16",
+    "type": "crane",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90101,
+      "lng": 77.63705
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 9842,
+    "purchaseDate": "2018-08-05",
+    "operatingHoursLast30Days": 176.8,
+    "idleHoursLast30Days": 54.5,
+    "totalJobsAssigned": 7,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-07-24",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-22",
+    "type": "loader",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90419,
+      "lng": 77.63756
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2908,
+    "purchaseDate": "2023-05-25",
+    "operatingHoursLast30Days": 120.6,
+    "idleHoursLast30Days": 89.5,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-08-05",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "LD-23",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90879,
+      "lng": 77.57715
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 4062,
+    "purchaseDate": "2021-02-28",
+    "operatingHoursLast30Days": 189.2,
+    "idleHoursLast30Days": 171.7,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-06",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CR-17",
+    "type": "crane",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23553,
+      "lng": 77.72101
+    },
+    "availability": "available",
+    "operatingCostPerDay": 9398,
+    "purchaseDate": "2020-07-27",
+    "operatingHoursLast30Days": 183.3,
+    "idleHoursLast30Days": 178.1,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-21",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-24",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.8427,
+      "lng": 77.65076
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4120,
+    "purchaseDate": "2025-10-09",
+    "operatingHoursLast30Days": 206.2,
+    "idleHoursLast30Days": 169.4,
+    "totalJobsAssigned": 20,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-23",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-25",
+    "type": "loader",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10588,
+      "lng": 77.59568
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3024,
+    "purchaseDate": "2020-01-18",
+    "operatingHoursLast30Days": 143.1,
+    "idleHoursLast30Days": 182.1,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-08-21",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "CM-30",
+    "type": "concrete_mixer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23592,
+      "lng": 77.70856
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2775,
+    "purchaseDate": "2024-12-15",
+    "operatingHoursLast30Days": 80.2,
+    "idleHoursLast30Days": 19.1,
+    "totalJobsAssigned": 13,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-08-24",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-26",
+    "type": "loader",
+    "location": "Site A - Whitefield",
+    "coordinates": {
+      "lat": 12.97244,
+      "lng": 77.7515
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3759,
+    "purchaseDate": "2019-10-20",
+    "operatingHoursLast30Days": 163.7,
+    "idleHoursLast30Days": 65.3,
+    "totalJobsAssigned": 0,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-10",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-26",
+    "type": "dump_truck",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84567,
+      "lng": 77.65741
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3134,
+    "purchaseDate": "2020-12-05",
+    "operatingHoursLast30Days": 210.7,
+    "idleHoursLast30Days": 113.4,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-07-22",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-27",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90277,
+      "lng": 77.57542
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3786,
+    "purchaseDate": "2019-09-04",
+    "operatingHoursLast30Days": 177.7,
+    "idleHoursLast30Days": 75.5,
+    "totalJobsAssigned": 23,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-06-03",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "BD-18",
+    "type": "bulldozer",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.09159,
+      "lng": 77.59722
+    },
+    "availability": "available",
+    "operatingCostPerDay": 5903,
+    "purchaseDate": "2019-02-12",
+    "operatingHoursLast30Days": 182.7,
+    "idleHoursLast30Days": 43.3,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-05-10",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "CR-18",
+    "type": "crane",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84952,
+      "lng": 77.66907
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6343,
+    "purchaseDate": "2020-06-02",
+    "operatingHoursLast30Days": 27.4,
+    "idleHoursLast30Days": 48.3,
+    "totalJobsAssigned": 25,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-06-22",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "CM-31",
+    "type": "concrete_mixer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89387,
+      "lng": 77.63707
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2842,
+    "purchaseDate": "2024-10-21",
+    "operatingHoursLast30Days": 58.2,
+    "idleHoursLast30Days": 77.8,
+    "totalJobsAssigned": 24,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-02",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-28",
+    "type": "loader",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.24857,
+      "lng": 77.72069
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3518,
+    "purchaseDate": "2017-03-20",
+    "operatingHoursLast30Days": 97.3,
+    "idleHoursLast30Days": 195.0,
+    "totalJobsAssigned": 15,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-07-03",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-29",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.84381,
+      "lng": 77.6701
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3171,
+    "purchaseDate": "2022-10-06",
+    "operatingHoursLast30Days": 56.1,
+    "idleHoursLast30Days": 65.8,
+    "totalJobsAssigned": 3,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-26",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-27",
+    "type": "dump_truck",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23703,
+      "lng": 77.71168
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2890,
+    "purchaseDate": "2025-05-11",
+    "operatingHoursLast30Days": 109.4,
+    "idleHoursLast30Days": 148.1,
+    "totalJobsAssigned": 11,
+    "breakdownCount": 4,
+    "lastServiceDate": "2026-08-26",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "LD-30",
+    "type": "loader",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90796,
+      "lng": 77.5901
+    },
+    "availability": "available",
+    "operatingCostPerDay": 4100,
+    "purchaseDate": "2024-10-13",
+    "operatingHoursLast30Days": 52.0,
+    "idleHoursLast30Days": 15.9,
+    "totalJobsAssigned": 19,
+    "breakdownCount": 5,
+    "lastServiceDate": "2026-09-01",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-28",
+    "type": "dump_truck",
+    "location": "Site F - JP Nagar",
+    "coordinates": {
+      "lat": 12.90494,
+      "lng": 77.59409
+    },
+    "availability": "available",
+    "operatingCostPerDay": 2761,
+    "purchaseDate": "2019-10-07",
+    "operatingHoursLast30Days": 26.5,
+    "idleHoursLast30Days": 39.2,
+    "totalJobsAssigned": 14,
+    "breakdownCount": 2,
+    "lastServiceDate": "2026-08-21",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-19",
+    "type": "bulldozer",
+    "location": "Site G - Devanahalli",
+    "coordinates": {
+      "lat": 13.23999,
+      "lng": 77.70837
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 6120,
+    "purchaseDate": "2023-04-07",
+    "operatingHoursLast30Days": 212.1,
+    "idleHoursLast30Days": 14.9,
+    "totalJobsAssigned": 5,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-08-10",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "DT-29",
+    "type": "dump_truck",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.89309,
+      "lng": 77.63424
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 2277,
+    "purchaseDate": "2024-04-06",
+    "operatingHoursLast30Days": 158.8,
+    "idleHoursLast30Days": 199.7,
+    "totalJobsAssigned": 6,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-07-14",
+    "maintenanceIntervalDays": 60
+  },
+  {
+    "name": "LD-31",
+    "type": "loader",
+    "location": "Site B - Electronic City",
+    "coordinates": {
+      "lat": 12.85141,
+      "lng": 77.66955
+    },
+    "availability": "in_use",
+    "operatingCostPerDay": 3626,
+    "purchaseDate": "2022-11-02",
+    "operatingHoursLast30Days": 217.3,
+    "idleHoursLast30Days": 136.9,
+    "totalJobsAssigned": 22,
+    "breakdownCount": 0,
+    "lastServiceDate": "2026-06-27",
+    "maintenanceIntervalDays": 120
+  },
+  {
+    "name": "DT-30",
+    "type": "dump_truck",
+    "location": "Site C - Yelahanka",
+    "coordinates": {
+      "lat": 13.10657,
+      "lng": 77.59648
+    },
+    "availability": "available",
+    "operatingCostPerDay": 3618,
+    "purchaseDate": "2022-02-25",
+    "operatingHoursLast30Days": 44.3,
+    "idleHoursLast30Days": 48.2,
+    "totalJobsAssigned": 4,
+    "breakdownCount": 1,
+    "lastServiceDate": "2026-09-03",
+    "maintenanceIntervalDays": 90
+  },
+  {
+    "name": "BD-20",
+    "type": "bulldozer",
+    "location": "Site H - Hosur Road",
+    "coordinates": {
+      "lat": 12.90487,
+      "lng": 77.63303
+    },
+    "availability": "available",
+    "operatingCostPerDay": 6936,
+    "purchaseDate": "2020-04-21",
+    "operatingHoursLast30Days": 142.4,
+    "idleHoursLast30Days": 26.4,
+    "totalJobsAssigned": 9,
+    "breakdownCount": 3,
+    "lastServiceDate": "2026-05-10",
+    "maintenanceIntervalDays": 120
+  }
+]
