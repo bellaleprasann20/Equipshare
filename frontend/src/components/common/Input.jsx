@@ -37,13 +37,13 @@ export default function Input({
           "border px-3 py-2 text-sm text-ink placeholder:text-steel-light",
           "focus:outline-none focus:ring-1 focus:ring-signal focus:border-signal",
           error ? "border-red-400" : "border-line",
-          disabled ? "bg-line/40 cursor-not-allowed" : "bg-white",
+          disabled ? "bg-line/40 cursor-not-allowed" : "bg-surface",
           className,
         ].join(" ")}
         {...rest}
       />
       {error && (
-        <p id={`${inputId}-error`} className="text-xs text-red-700">
+        <p id={`${inputId}-error`} className="text-xs text-red-400">
           {error}
         </p>
       )}

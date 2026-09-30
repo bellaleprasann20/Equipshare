@@ -1,4 +1,4 @@
-# EquipShare — Intelligent Construction Equipment Allocation and Utilization System
+# MachineHub — Intelligent Construction Equipment Allocation and Utilization System
 
 An MCA final-year capstone project (PES University, Bengaluru) that ranks construction
 equipment for a project request using a machine-learning-derived Equipment Efficiency
@@ -67,10 +67,16 @@ Generate a `JWT_SECRET` with:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Seed the database (creates equipment records and two test accounts):
+Seed the database (creates 24 catalog machines with prices, plus two test accounts):
 
 ```powershell
 npm run seed
+```
+
+To also load the 150 extra machines used for the EEI/allocation experiments:
+
+```powershell
+npm run seed:full
 ```
 
 Start the backend:
@@ -87,12 +93,20 @@ Open a **second** terminal:
 
 ```powershell
 cd frontend
+npm install leaflet@1.9.4 react-leaflet@4.2.1
 npm install
 copy .env.example .env
 npm run dev
 ```
 
 Open the URL it prints, usually `http://localhost:5173`.
+
+### 4. Equipment photos (optional)
+
+Photos go in `frontend/public/images/equipment/`, named by equipment code — for example
+`ex-01.jpg` for the first excavator. See the file list in `backend/data/catalogEquipment.js`
+for every expected file name. A missing photo just shows the machine's code instead of a
+broken image, so this step can be skipped.
 
 ## Test accounts
 
@@ -105,15 +119,22 @@ Created by `npm run seed`:
 
 ## Common issues
 
-- **Frontend loads blank or shows "Failed to resolve import":** a file is missing.
-  Check the terminal for the exact file path it names, and confirm that file exists.
+- **Blank page, no errors:** `frontend/index.html` is missing or misplaced. It must sit
+  directly inside `frontend/`, next to `package.json`, not inside `src/`.
+- **"Failed to resolve import ... react-leaflet":** run
+  `npm install leaflet@1.9.4 react-leaflet@4.2.1` inside `frontend/`.
 - **Login/Register does nothing:** the backend isn't running, or `frontend/.env`
-  doesn't point at it. Confirm `backend` shows "running on http://localhost:5000"
-  and `frontend/.env` has `VITE_API_BASE_URL=http://localhost:5000/api`.
+  doesn't point at it. Confirm the backend terminal shows "running on
+  http://localhost:5000" and `frontend/.env` has
+  `VITE_API_BASE_URL=http://localhost:5000/api`.
 - **Rent/Buy pages are empty:** the database hasn't been seeded. Run `npm run seed`
   in `backend/`.
-- **Map page is blank:** `react-leaflet` isn't installed. Run
-  `npm install leaflet@1.9.4 react-leaflet@4.2.1` in `frontend/`.
+- **Text in a form is invisible:** usually means a component still has a leftover
+  light-theme background color. Check `src/index.css` was saved and the dev server
+  was restarted after any styling change.
+- **A different person's login fails with 401:** each person running this locally
+  needs their own `backend/.env` pointing at a MongoDB database that has been seeded.
+  Test accounts only exist in whichever database `npm run seed` was run against.
 
 ## Re-training the EEI model
 

@@ -65,12 +65,12 @@ export default function Navbar() {
   };
 
   const searchForm = (widthClass) => (
-    <form onSubmit={handleSearch} className={`flex items-center border border-line bg-white ${widthClass}`}>
+    <form onSubmit={handleSearch} className={`flex items-center border border-line bg-paper ${widthClass}`}>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search equipment or site"
-        className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm placeholder:text-steel-light focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-steel-light focus:outline-none"
       />
       <button type="submit" aria-label="Search" className="px-3 text-steel hover:text-signal">
         <SearchIcon />
@@ -91,14 +91,14 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-30">
-      {/* Main bar */}
-      <div className="flex items-center justify-between gap-6 border-b border-line bg-white px-4 py-3 sm:px-8">
+      {/* Main bar — dark surface, one shade lighter than the page */}
+      <div className="flex items-center justify-between gap-6 border-b border-line bg-surface px-4 py-3 sm:px-8">
         <div className="flex items-center gap-8">
           <Link to="/dashboard" className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center bg-signal font-display text-sm font-bold text-white">
-              E
+              M
             </span>
-            <span className="font-display text-xl font-bold tracking-tight text-ink">EquipShare</span>
+            <span className="font-display text-xl font-bold tracking-tight text-ink">MachineHub</span>
           </Link>
 
           <nav className="hidden items-center gap-6 xl:flex">
@@ -123,7 +123,7 @@ export default function Navbar() {
           {user && <span className="text-sm text-steel">{user.name}</span>}
           <button
             onClick={handleLogout}
-            className="border border-ink/20 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-ink hover:border-ink/50"
+            className="border border-line px-4 py-2 text-xs font-semibold uppercase tracking-widest text-ink hover:border-steel"
           >
             Logout
           </button>
@@ -142,10 +142,10 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Dark strip */}
-      <div className="hidden items-center justify-between bg-ink px-8 py-2.5 text-sm text-white md:flex">
-        <span className="text-white/70">{roleLabel}</span>
-        <div className="flex items-center gap-8 text-xs font-medium uppercase tracking-wider">
+      {/* Secondary strip — page background, one shade darker than the bar above */}
+      <div className="hidden items-center justify-between bg-paper px-8 py-2.5 text-sm md:flex">
+        <span className="text-steel">{roleLabel}</span>
+        <div className="flex items-center gap-8 text-xs font-medium uppercase tracking-wider text-steel">
           <Link to="/allocation" className="hover:text-signal">New requirement</Link>
           <Link to="/allocation/history" className="hover:text-signal">Allocation history</Link>
           <Link to="/equipment/manage" className="hover:text-signal">Table view</Link>
@@ -155,7 +155,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <nav className="absolute left-0 right-0 top-full flex flex-col border-b border-line bg-white p-4 xl:hidden">
+        <nav className="absolute left-0 right-0 top-full flex flex-col border-b border-line bg-surface p-4 xl:hidden">
           {searchForm("w-full")}
           <div className="mt-2 flex flex-col">
             {links.map((l) => (

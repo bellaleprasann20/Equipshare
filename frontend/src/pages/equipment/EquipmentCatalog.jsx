@@ -63,7 +63,7 @@ function EquipmentTile({ item, mode, cartMode, onOpen, onAdd }) {
             className="aspect-[4/3] w-full"
           />
           {!available && (
-            <span className="absolute left-3 top-3 bg-ink px-2 py-1 text-xs font-medium text-white">
+            <span className="absolute left-3 top-3 border border-line bg-paper px-2 py-1 text-xs font-medium text-ink">
               {status === "sold" ? "Sold" : "In use"}
             </span>
           )}
@@ -164,14 +164,14 @@ export default function EquipmentCatalog() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex border border-line bg-white">
+          <div className="flex border border-line bg-surface">
             {["rent", "buy"].map((m) => (
               <button
                 key={m}
                 onClick={() => setParam("mode", m)}
                 className={[
                   "px-5 py-2 text-sm font-semibold",
-                  mode === m ? "bg-ink text-white" : "text-steel hover:text-ink",
+                  mode === m ? "bg-signal text-white" : "text-steel hover:text-ink",
                 ].join(" ")}
               >
                 {m === "rent" ? "Rent" : "Buy"}
@@ -182,13 +182,13 @@ export default function EquipmentCatalog() {
             value={search}
             onChange={(e) => setParam("q", e.target.value)}
             placeholder="Search by name or site"
-            className="w-64 border border-line bg-white px-3 py-2 text-sm placeholder:text-steel-light focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+            className="w-64 border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-steel-light focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
           />
         </div>
       </div>
 
       {mode === "rent" && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-line bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-line bg-surface p-4">
           <p className="text-sm text-steel">
             Not sure which machine suits your site? Let the ranking engine shortlist for you.
           </p>
@@ -211,8 +211,8 @@ export default function EquipmentCatalog() {
 
       <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
         <div className="hidden lg:block">
-          <div className="sticky top-32 border-t-2 border-ink pt-3">
-            <p className="mb-2 text-sm font-semibold">Browse by category</p>
+          <div className="sticky top-32 border-t-2 border-signal pt-3">
+            <p className="mb-2 text-sm font-semibold text-ink">Browse by category</p>
             <ul>
               {grouped.map((g) => (
                 <li key={g.value} className="border-b border-line">
@@ -240,7 +240,7 @@ export default function EquipmentCatalog() {
             return (
               <section key={g.value} id={`cat-${g.value}`} className="scroll-mt-36">
                 <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
-                  <h2 className="font-display text-xl font-semibold">{g.label}s</h2>
+                  <h2 className="font-display text-xl font-semibold text-ink">{g.label}s</h2>
                   {g.list.length > 3 && (
                     <button
                       onClick={() => setExpanded((e) => ({ ...e, [g.value]: !e[g.value] }))}
@@ -271,24 +271,26 @@ export default function EquipmentCatalog() {
         </div>
       </div>
 
-      <section className="bg-ink px-6 py-12 text-white sm:px-10">
-        <h2 className="mb-6 text-center font-display text-3xl font-bold">Frequently asked questions</h2>
-        <div className="mx-auto max-w-3xl divide-y divide-white/10 border-y border-white/10">
+      <section className="border border-line bg-surface px-6 py-12 sm:px-10">
+        <h2 className="mb-6 text-center font-display text-3xl font-bold text-ink">
+          Frequently asked questions
+        </h2>
+        <div className="mx-auto max-w-3xl divide-y divide-line border-y border-line">
           {FAQS.map((f) => (
             <details key={f.q} className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-ink">
                 {f.q}
                 <span className="text-signal transition-transform group-open:rotate-45">+</span>
               </summary>
-              <p className="mt-3 text-sm text-white/65">{f.a}</p>
+              <p className="mt-3 text-sm text-steel">{f.a}</p>
             </details>
           ))}
         </div>
       </section>
 
-      <section className="flex flex-wrap items-center justify-between gap-4 border border-line bg-white p-8">
+      <section className="panel flex flex-wrap items-center justify-between gap-4 p-8">
         <div>
-          <h2 className="font-display text-2xl font-bold">Can't find the right machine?</h2>
+          <h2 className="font-display text-2xl font-bold text-ink">Can't find the right machine?</h2>
           <p className="mt-1 text-sm text-steel">
             Describe your project and we'll rank what's available for you.
           </p>

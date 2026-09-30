@@ -69,7 +69,7 @@ export default function AddEquipment() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-4 text-xl font-semibold text-gray-900">Add Equipment</h1>
+      <h1 className="mb-4 font-display text-xl font-semibold text-ink">Add Equipment</h1>
 
       {apiError && (
         <div className="mb-4">
@@ -77,10 +77,7 @@ export default function AddEquipment() {
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-5"
-      >
+      <form onSubmit={handleSubmit} className="panel flex flex-col gap-4 p-5">
         <Input
           label="Equipment Name"
           name="name"

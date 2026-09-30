@@ -3,26 +3,6 @@ import Select from "../common/Select";
 import Input from "../common/Input";
 import Button from "../common/Button";
 
-/**
- * Form a project manager fills in to request equipment. On
- * submit, this is POSTed to the backend (POST /api/allocate),
- * which runs the EEI + ranking engine and returns a sorted
- * list of candidate equipment — rendered by RankingTable /
- * RecommendationCard on the Recommendations page.
- *
- * Expected shape of the object passed to onSubmit:
- *   {
- *     equipmentType: "excavator",
- *     projectLocation: "Site B, Whitefield",
- *     requiredFrom: "2026-09-15",
- *     requiredTo: "2026-10-01",
- *     maxTransferDistanceKm: 50,   // optional cutoff
- *     notes: "..."
- *   }
- *
- * Usage:
- *   <RequirementForm onSubmit={handleGetRecommendations} loading={loading} />
- */
 const TYPE_OPTIONS = [
   { value: "excavator", label: "Excavator" },
   { value: "crane", label: "Crane" },
@@ -72,8 +52,8 @@ export default function RequirementForm({ onSubmit, loading = false }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-5">
-      <h2 className="text-base font-semibold text-gray-900">Request Equipment</h2>
+    <form onSubmit={handleSubmit} className="panel flex flex-col gap-4 p-5">
+      <h2 className="font-display text-base font-semibold text-ink">Request Equipment</h2>
 
       <Select
         label="Equipment Type"

@@ -14,7 +14,7 @@ function ModeToggle({ mode, onChange }) {
           onClick={() => onChange(m)}
           className={[
             "px-4 py-1.5 text-sm font-medium",
-            mode === m ? "bg-ink text-white" : "text-steel hover:text-ink",
+            mode === m ? "bg-signal text-white" : "text-steel hover:text-ink",
           ].join(" ")}
         >
           {m === "rent" ? "Rent" : "Buy"}
@@ -84,7 +84,7 @@ export default function Cart() {
                             days: Math.max(1, Math.min(365, Number(e.target.value) || 1)),
                           })
                         }
-                        className="w-20 border border-line px-2 py-1 font-mono text-sm text-ink focus:border-signal focus:outline-none"
+                        className="w-20 border border-line bg-surface px-2 py-1 font-mono text-sm text-ink focus:border-signal focus:outline-none"
                       />
                       <span className="font-mono">at {formatINR(rentPerDay(item))} per day</span>
                     </label>

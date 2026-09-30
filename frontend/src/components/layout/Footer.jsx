@@ -10,7 +10,8 @@ export default function Footer() {
     {
       title: "Fleet",
       links: [
-        { to: "/equipment", label: "Equipment catalog" },
+        { to: "/equipment?mode=rent", label: "Rent equipment" },
+        { to: "/equipment?mode=buy", label: "Buy equipment" },
         { to: "/equipment/manage", label: "Table view" },
         ...(isAdmin ? [{ to: "/equipment/add", label: "Add equipment" }] : []),
       ],
@@ -33,30 +34,30 @@ export default function Footer() {
       title: "Account",
       links: [
         { to: "/dashboard", label: "Dashboard" },
-        { to: "/login", label: "Switch account" },
+        { to: "/orders", label: "My orders" },
       ],
     },
   ];
 
   return (
-    <footer className="bg-ink text-white">
+    <footer className="border-t border-line bg-surface">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-8 md:grid-cols-5">
         <div className="md:col-span-1">
-          <p className="font-display text-xl font-bold">EquipShare</p>
-          <p className="mt-3 text-sm text-white/55">
+          <p className="font-display text-xl font-bold text-ink">MachineHub</p>
+          <p className="mt-3 text-sm text-steel">
             Intelligent construction equipment allocation and utilization.
           </p>
         </div>
 
         {columns.map((col) => (
           <div key={col.title}>
-            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-white">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-ink">
               {col.title}
             </p>
             <ul className="flex flex-col gap-2.5">
               {col.links.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm text-white/60 hover:text-signal">
+                  <Link to={link.to} className="text-sm text-steel hover:text-signal">
                     {link.label}
                   </Link>
                 </li>
@@ -66,9 +67,9 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-white/45 sm:px-8">
-          <span>© {new Date().getFullYear()} EquipShare</span>
+      <div className="border-t border-line">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-steel-light sm:px-8">
+          <span>© {new Date().getFullYear()} MachineHub</span>
           <span>MCA capstone project, PES University</span>
         </div>
       </div>

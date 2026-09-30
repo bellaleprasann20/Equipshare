@@ -8,6 +8,12 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 
 const DEFAULT_CENTER = [12.98, 77.62];
 
+// Matches --color-signal and --color-blueprint in index.css.
+// Kept as plain hex here since react-leaflet's pathOptions can't
+// read CSS custom properties directly.
+const MARKER_COLOR = "#7c5cfc";
+const MARKER_SELECTED_COLOR = "#5b8def";
+
 function FlyTo({ target }) {
   const map = useMap();
   useEffect(() => {
@@ -105,7 +111,7 @@ export default function Locations() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         {/* Map */}
-        <div className="relative isolate border border-line bg-white">
+        <div className="relative isolate border border-line bg-surface">
           <MapContainer
             center={DEFAULT_CENTER}
             zoom={10}
@@ -125,9 +131,9 @@ export default function Locations() {
                   center={[site.lat, site.lng]}
                   radius={isSelected ? 14 : 9}
                   pathOptions={{
-                    color: isSelected ? "#10151b" : "#e8602c",
-                    fillColor: "#e8602c",
-                    fillOpacity: 0.8,
+                    color: isSelected ? MARKER_SELECTED_COLOR : MARKER_COLOR,
+                    fillColor: MARKER_COLOR,
+                    fillOpacity: 0.85,
                     weight: 2,
                   }}
                   eventHandlers={{ click: () => setSelectedName(site.name) }}
@@ -144,13 +150,13 @@ export default function Locations() {
         </div>
 
         {/* Directory */}
-        <div className="flex flex-col border border-line bg-white">
+        <div className="flex flex-col border border-line bg-surface">
           <div className="border-b border-line p-3">
             <input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Search sites"
-              className="w-full border border-line px-3 py-2 text-sm placeholder:text-steel-light focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+              className="w-full border border-line bg-paper px-3 py-2 text-sm text-ink placeholder:text-steel-light focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
             />
           </div>
 
