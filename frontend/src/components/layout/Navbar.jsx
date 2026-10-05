@@ -38,16 +38,23 @@ export default function Navbar() {
   const onCatalog = location.pathname === "/equipment";
   const activeMode = onCatalog ? params.get("mode") || "rent" : null;
 
-  const links = [
-    { key: "dashboard", label: "Dashboard", to: "/dashboard", active: location.pathname === "/dashboard" },
-    { key: "rent", label: "Rent", to: "/equipment?mode=rent", active: activeMode === "rent" },
-    { key: "buy", label: "Buy", to: "/equipment?mode=buy", active: activeMode === "buy" },
-    { key: "locations", label: "Locations", to: "/locations", active: location.pathname === "/locations" },
-    { key: "analytics", label: "Analytics", to: "/analytics", active: location.pathname === "/analytics" },
-    ...(isAdmin
-      ? [{ key: "admin", label: "Fleet overview", to: "/admin", active: location.pathname === "/admin" }]
-      : []),
+  // Primary navigation links split by role
+  const adminLinks = [
+    { key: "dashboard", label: "Fleet Overview", to: "/admin" },
+    { key: "catalog", label: "Equipment Directory", to: "/equipment" },
+    { key: "approvals", label: "Approval Queue", to: "/admin/approvals" },
+    { key: "analytics", label: "Analytics", to: "/analytics" },
   ];
+
+  const managerLinks = [
+    { key: "dashboard", label: "Dashboard", to: "/dashboard" },
+    { key: "catalog", label: "Equipment Catalog", to: "/equipment" },
+    { key: "request", label: "New Requirement", to: "/allocation" },
+    { key: "locations", label: "Site Locations", to: "/locations" },
+    { key: "analytics", label: "Analytics", to: "/analytics" },
+  ];
+
+  const links = isAdmin ? adminLinks : managerLinks;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -78,27 +85,27 @@ export default function Navbar() {
     </form>
   );
 
-  const cartLink = (
-    <Link to="/cart" aria-label={`Cart, ${count} items`} className="relative p-1 text-ink hover:text-signal">
+  const cartLink = !isAdmin ? (
+    <Link to="/cart" aria-label={`Draft, ${count} items`} className="relative p-1 text-ink hover:text-signal">
       <CartIcon />
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 bg-signal px-1 font-mono text-[10px] font-bold leading-4 text-white">
+        <span className="absolute -right-1 -top-1 bg-signal px-1 font-mono text-[10px] font-bold leading-4 text-white rounded">
           {count}
         </span>
       )}
     </Link>
-  );
+  ) : null;
 
   return (
     <header className="sticky top-0 z-30">
-      {/* Main bar — dark surface, one shade lighter than the page */}
+      {/* Main bar */}
       <div className="flex items-center justify-between gap-6 border-b border-line bg-surface px-4 py-3 sm:px-8">
         <div className="flex items-center gap-8">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center bg-signal font-display text-sm font-bold text-white">
-              M
+          <Link to={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center bg-signal font-display text-sm font-bold text-white rounded-sm">
+              E
             </span>
-            <span className="font-display text-xl font-bold tracking-tight text-ink">MachineHub</span>
+            <span className="font-display text-xl font-bold tracking-tight text-ink">EquipShare</span>
           </Link>
 
           <nav className="hidden items-center gap-6 xl:flex">
@@ -106,10 +113,7 @@ export default function Navbar() {
               <Link
                 key={l.key}
                 to={l.to}
-                className={[
-                  "border-b-2 py-1 text-xs font-semibold uppercase tracking-widest",
-                  l.active ? "border-signal text-ink" : "border-transparent text-steel hover:text-ink",
-                ].join(" ")}
+                className="border-b-2 border-transparent py-1 text-xs font-semibold uppercase tracking-widest text-steel hover:text-ink hover:border-signal transition-colors"
               >
                 {l.label}
               </Link>
@@ -118,12 +122,12 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-4 xl:flex">
-          {searchForm("w-64")}
+          {searchForm("w-64 rounded")}
           {cartLink}
-          {user && <span className="text-sm text-steel">{user.name}</span>}
+          {user && <span className="text-sm font-medium text-steel">{user.name}</span>}
           <button
             onClick={handleLogout}
-            className="border border-line px-4 py-2 text-xs font-semibold uppercase tracking-widest text-ink hover:border-steel"
+            className="border border-line px-4 py-2 text-xs font-semibold uppercase tracking-widest text-ink hover:border-signal rounded transition-colors"
           >
             Logout
           </button>
@@ -142,45 +146,61 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Secondary strip — page background, one shade darker than the bar above */}
-      <div className="hidden items-center justify-between bg-paper px-8 py-2.5 text-sm md:flex">
-        <span className="text-steel">{roleLabel}</span>
-        <div className="flex items-center gap-8 text-xs font-medium uppercase tracking-wider text-steel">
-          <Link to="/allocation" className="hover:text-signal">New requirement</Link>
-          <Link to="/allocation/history" className="hover:text-signal">Allocation history</Link>
-          <Link to="/equipment/manage" className="hover:text-signal">Table view</Link>
-          <Link to="/orders" className="hover:text-signal">My orders</Link>
+      {/* Secondary role-based strip */}
+      <div className="hidden items-center justify-between bg-paper px-8 py-2.5 text-sm md:flex border-b border-line">
+        <span className="text-steel font-medium">{roleLabel}</span>
+        
+        <div className="flex items-center gap-8 text-xs font-bold uppercase tracking-wider text-steel">
+          {isAdmin ? (
+            <>
+              <Link to="/equipment/manage" className="hover:text-signal transition-colors">Table View</Link>
+              <Link to="/equipment/add" className="hover:text-signal transition-colors">+ Register Asset</Link>
+              <Link to="/admin/approvals" className="hover:text-signal text-purple-400 transition-colors">Approval Queue</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/allocation" className="hover:text-signal transition-colors">New Requirement</Link>
+              <Link to="/allocation/history" className="hover:text-signal transition-colors">Allocation History</Link>
+              <Link to="/equipment/manage" className="hover:text-signal transition-colors">Table View</Link>
+              <Link to="/orders" className="hover:text-signal transition-colors">My Orders</Link>
+            </>
+          )}
         </div>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <nav className="absolute left-0 right-0 top-full flex flex-col border-b border-line bg-surface p-4 xl:hidden">
-          {searchForm("w-full")}
-          <div className="mt-2 flex flex-col">
+        <nav className="absolute left-0 right-0 top-full flex flex-col border-b border-line bg-surface p-4 xl:hidden shadow-lg">
+          {searchForm("w-full rounded mb-2")}
+          <div className="flex flex-col gap-1">
             {links.map((l) => (
               <Link
                 key={l.key}
                 to={l.to}
                 onClick={() => setMenuOpen(false)}
-                className={[
-                  "border-l-2 px-3 py-3 text-sm font-medium",
-                  l.active ? "border-signal text-ink" : "border-transparent text-steel",
-                ].join(" ")}
+                className="px-3 py-2.5 text-sm font-medium text-steel hover:text-ink hover:bg-paper rounded"
               >
                 {l.label}
               </Link>
             ))}
-            <Link to="/allocation" onClick={() => setMenuOpen(false)} className="px-3 py-3 text-sm font-medium text-signal">
-              New requirement
-            </Link>
-            <Link to="/allocation/history" onClick={() => setMenuOpen(false)} className="px-3 py-3 text-sm text-steel">
-              Allocation history
-            </Link>
-            <Link to="/orders" onClick={() => setMenuOpen(false)} className="px-3 py-3 text-sm text-steel">
-              My orders
-            </Link>
-            <button onClick={handleLogout} className="px-3 py-3 text-left text-sm text-ink">
+
+            <div className="border-t border-line my-2 pt-2 flex flex-col gap-1">
+              {isAdmin ? (
+                <>
+                  <Link to="/equipment/manage" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm text-steel">Table View</Link>
+                  <Link to="/equipment/add" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm text-steel">+ Register Asset</Link>
+                  <Link to="/admin/approvals" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm font-bold text-purple-400">Approval Queue</Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/allocation" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm font-bold text-signal">New Requirement</Link>
+                  <Link to="/allocation/history" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm text-steel">Allocation History</Link>
+                  <Link to="/orders" onClick={() => setMenuOpen(false)} className="px-3 py-2.5 text-sm text-steel">My Orders</Link>
+                </>
+              )}
+            </div>
+
+            <button onClick={handleLogout} className="mt-2 px-3 py-2 text-left text-sm font-semibold text-red-400 hover:bg-paper rounded">
               Logout
             </button>
           </div>

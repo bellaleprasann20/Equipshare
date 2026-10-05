@@ -18,10 +18,13 @@ const orderSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     items: [orderItemSchema],
     total: Number,
+    // pending: awaiting admin review, nothing reserved yet.
+    // approved: admin confirmed, equipment reserved.
+    // rejected / cancelled: no reservation, or released.
     status: {
       type: String,
-      enum: ["confirmed", "cancelled"],
-      default: "confirmed",
+      enum: ["pending", "approved", "rejected", "cancelled"],
+      default: "pending",
     },
     contactName: { type: String, required: true },
     phone: { type: String, required: true },

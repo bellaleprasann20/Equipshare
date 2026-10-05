@@ -176,12 +176,16 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-10">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+     <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-bold text-ink">Your fleet</h1>
+          <h1 className="font-display text-4xl font-bold text-ink">
+            {isAdmin ? "Your fleet" : "Your project workspace"}
+          </h1>
           <p className="mt-1 text-steel">
-            Welcome back{user?.name ? `, ${user.name}` : ""}. Here is how your equipment
-            is performing.
+            Welcome back{user?.name ? `, ${user.name}` : ""}. 
+            {isAdmin 
+              ? " Here is how the overall fleet is performing." 
+              : " Here is the status of your requested equipment."}
           </p>
         </div>
         <div className="flex gap-3">

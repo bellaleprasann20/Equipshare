@@ -1,4 +1,4 @@
-# MachineHub — Intelligent Construction Equipment Allocation and Utilization System
+# EquipShare — Intelligent Construction Equipment Allocation and Utilization System
 
 An MCA final-year capstone project (PES University, Bengaluru) that ranks construction
 equipment for a project request using a machine-learning-derived Equipment Efficiency

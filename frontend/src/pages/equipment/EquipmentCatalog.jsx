@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEquipment } from "../../hooks/useEquipment";
 import { useCart } from "../../context/CartContext";
-import { buyPrice, rentPerDay, formatINR } from "../../utils/pricing";
+import { formatINR } from "../../utils/pricing";
 import EEIBadge from "../../components/equipment/EEIBadge";
 import EquipmentImage from "../../components/equipment/EquipmentImage";
 import Loader from "../../components/common/Loader";
@@ -28,58 +28,59 @@ const FAQS = [
     a: "On the New requirement page, each available machine of the type you ask for is scored on its EEI, distance to your site, transfer cost and availability fit. The highest combined score ranks first, and you can see the breakdown behind it.",
   },
   {
-    q: "How are rent and buy prices set?",
-    a: "Each machine has a listed daily rent and a listed purchase price. A rental total is the number of days multiplied by the daily rate.",
+    q: "How are internal costs calculated?",
+    a: "Instead of paying third-party vendors, your site budget is charged an internal transfer fee based on the daily depreciation rate of the machine.",
   },
   {
-    q: "What happens when I place an order?",
-    a: "Rented machines are marked in use and purchased machines are marked sold. You can cancel a confirmed order from the My orders page to release the machines. Payment is simulated in this project.",
+    q: "What happens when I request an allocation?",
+    a: "Your request is sent to the Fleet Admin's approval queue. Once approved, the machine status changes to 'Allocated' and it will be dispatched to your site.",
   },
   {
-    q: "Who can add or edit equipment?",
-    a: "Fleet admins. Project managers can browse the fleet, rent or buy machines and review machines they have rented.",
+    q: "Who can add or retire equipment?",
+    a: "Only Fleet Admins. Project managers can browse the fleet, request machines for their sites, and release them when a project is complete.",
   },
 ];
 
-function EquipmentTile({ item, mode, cartMode, onOpen, onAdd }) {
-  const status = item.availability;
+function EquipmentTile({ item, cartMode, onOpen, onAdd }) {
+  const status = item.availability || "available"; // fallback for testing
   const available = status === "available";
-  const inCart = cartMode === mode;
-  const price = mode === "buy" ? formatINR(buyPrice(item)) : `${formatINR(rentPerDay(item))} / day`;
+  const inCart = cartMode === "rent"; // Simplified since we removed buy mode
 
-  let label = mode === "buy" ? "Add to cart" : "Rent";
-  if (status === "sold") label = "Sold";
-  else if (status === "in_use") label = "In use";
-  else if (inCart) label = "In cart";
+  let label = "Request Asset";
+  if (status === "allocated") label = "Allocated";
+  else if (status === "maintenance") label = "In Maintenance";
+  else if (inCart) label = "In Request Draft";
 
   return (
-    <div className="panel flex flex-col">
+    <div className="panel flex flex-col bg-surface border border-line rounded-lg overflow-hidden transition-all hover:border-signal">
       <button onClick={onOpen} className="group flex flex-col text-left">
         <div className="relative">
           <EquipmentImage
             src={item.imageUrl}
             alt={item.name}
             label={item.name.split(" ")[0]}
-            className="aspect-[4/3] w-full"
+            className="aspect-[4/3] w-full object-cover"
           />
           {!available && (
-            <span className="absolute left-3 top-3 border border-line bg-paper px-2 py-1 text-xs font-medium text-ink">
-              {status === "sold" ? "Sold" : "In use"}
+            <span className="absolute left-3 top-3 border border-line bg-paper px-2 py-1 text-xs font-bold uppercase tracking-wider text-ink rounded shadow-sm">
+              {status === "allocated" ? "At Another Site" : "Maintenance"}
             </span>
           )}
         </div>
         <div className="flex flex-col gap-1 px-4 pt-4">
-          <p className="text-xs text-steel">{item.location}</p>
-          <h3 className="font-display text-base font-semibold text-ink group-hover:text-signal">
+          <p className="text-xs font-semibold uppercase tracking-wider text-steel">
+            Site: {item.location || "Central Hub"}
+          </p>
+          <h3 className="font-display text-lg font-bold text-ink group-hover:text-signal transition-colors line-clamp-1">
             {item.name}
           </h3>
         </div>
       </button>
 
-      <div className="mt-auto flex items-end justify-between gap-3 p-4">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-lg font-semibold text-ink">{price}</span>
-          <EEIBadge score={item.eeiScore} showLabel={false} />
+      <div className="mt-auto flex items-end justify-between gap-3 p-4 border-t border-line mt-4">
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] uppercase font-bold tracking-wider text-steel">AI Efficiency Score</p>
+          <EEIBadge score={item.eeiScore || 75} showLabel={false} />
         </div>
         <Button size="sm" variant={inCart ? "outline" : "primary"} disabled={!available} onClick={onAdd}>
           {label}
@@ -93,9 +94,8 @@ export default function EquipmentCatalog() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { fetchEquipment } = useEquipment();
-  const { items: cartItems, addItem } = useCart();
+  const { items: cartItems, addItem } = useCart(); // Still using cart context under the hood
 
-  const mode = searchParams.get("mode") === "buy" ? "buy" : "rent";
   const search = searchParams.get("q") || "";
 
   const [machines, setMachines] = useState([]);
@@ -105,7 +105,7 @@ export default function EquipmentCatalog() {
 
   useEffect(() => {
     fetchEquipment({ filters: {}, page: 1, pageSize: 200 })
-      .then((res) => setMachines(res.items))
+      .then((res) => setMachines(res.items || res)) // Ensure it handles different res structures
       .catch((err) => setError(err?.response?.data?.message || "Could not reach the server. Is the backend running?"))
       .finally(() => setLoading(false));
   }, [fetchEquipment]);
@@ -121,12 +121,12 @@ export default function EquipmentCatalog() {
     const query = search.trim().toLowerCase();
     return TYPES.map((t) => {
       const list = machines
-        .filter((m) => m.type === t.value)
+        .filter((m) => m.category?.toLowerCase() === t.value || m.type === t.value)
         .filter(
           (m) =>
             !query ||
             m.name.toLowerCase().includes(query) ||
-            m.location.toLowerCase().includes(query)
+            m.location?.toLowerCase().includes(query)
         )
         .sort((a, b) => (b.eeiScore ?? 0) - (a.eeiScore ?? 0));
       return { ...t, list };
@@ -140,88 +140,75 @@ export default function EquipmentCatalog() {
 
   const handleAdd = (item) => {
     const inCart = cartItems.find((c) => c.equipmentId === item._id);
-    if (inCart && inCart.mode === mode) {
-      navigate("/cart");
+    if (inCart) {
+      navigate("/cart"); // Redirect to the Allocation Draft page
       return;
     }
-    addItem(item, mode, 7);
+    addItem(item, "rent", 7); // Default to rent mode under the hood to preserve pricing logic
   };
 
-  if (loading) return <Loader label="Loading fleet..." />;
+  if (loading) return <Loader label="Loading company fleet..." />;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 max-w-[1400px] mx-auto py-6 px-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold text-ink">
-            {mode === "buy" ? "Buy equipment" : "Rent equipment"}
+          <h1 className="font-display text-4xl font-bold text-ink">
+            Company Fleet Catalog
           </h1>
-          <p className="mt-1 text-sm text-steel">
-            {mode === "buy"
-              ? "Listed purchase prices. Sold machines stay visible so you can see what has gone."
-              : "Daily rental rates. Best-scoring machines come first."}
+          <p className="mt-2 text-sm text-steel max-w-2xl">
+            Browse all available internal machinery. Assets are automatically ranked by their AI-predicted Equipment Efficiency Index (EEI) to ensure your site receives the most reliable machines.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex border border-line bg-surface">
-            {["rent", "buy"].map((m) => (
-              <button
-                key={m}
-                onClick={() => setParam("mode", m)}
-                className={[
-                  "px-5 py-2 text-sm font-semibold",
-                  mode === m ? "bg-signal text-white" : "text-steel hover:text-ink",
-                ].join(" ")}
-              >
-                {m === "rent" ? "Rent" : "Buy"}
-              </button>
-            ))}
-          </div>
           <input
             value={search}
             onChange={(e) => setParam("q", e.target.value)}
-            placeholder="Search by name or site"
-            className="w-64 border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-steel-light focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+            placeholder="Search by name or site location"
+            className="w-72 border border-line bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-steel-light focus:border-signal focus:outline-none rounded shadow-sm"
           />
         </div>
       </div>
 
-      {mode === "rent" && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-line bg-surface p-4">
-          <p className="text-sm text-steel">
-            Not sure which machine suits your site? Let the ranking engine shortlist for you.
+      <div className="flex flex-wrap items-center justify-between gap-3 border border-line bg-signal/5 p-5 rounded-lg">
+        <div>
+          <h3 className="text-base font-bold text-ink">Need a smart recommendation?</h3>
+          <p className="text-sm text-steel mt-1">
+            Not sure which machine suits your site? Let the AI engine shortlist the best options based on distance and reliability.
           </p>
-          <Button variant="outline" size="sm" onClick={() => navigate("/allocation")}>
-            Get a ranked shortlist
-          </Button>
         </div>
-      )}
+        <Button variant="primary" size="lg" onClick={() => navigate("/allocation")}>
+          Run Smart Allocation
+        </Button>
+      </div>
 
       {error && <ErrorMessage message={error} />}
 
       {!error && machines.length === 0 && (
-        <div className="panel p-8 text-center">
-          <p className="font-display text-lg font-semibold text-ink">No equipment in the database yet</p>
-          <p className="mt-2 text-sm text-steel">
-            Open a terminal in the backend folder, run npm run seed, then refresh this page.
+        <div className="panel p-12 text-center bg-surface border border-line rounded-lg">
+          <p className="font-display text-2xl font-bold text-ink">No equipment found</p>
+          <p className="mt-2 text-steel">
+            The database is currently empty. Run the seed script in your backend to populate the fleet.
           </p>
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
         <div className="hidden lg:block">
-          <div className="sticky top-32 border-t-2 border-signal pt-3">
-            <p className="mb-2 text-sm font-semibold text-ink">Browse by category</p>
-            <ul>
+          <div className="sticky top-32 border-t-2 border-signal pt-4 bg-surface p-4 rounded-lg border border-line shadow-sm">
+            <p className="mb-4 text-sm font-bold uppercase tracking-wider text-ink">Browse by category</p>
+            <ul className="flex flex-col gap-1">
               {grouped.map((g) => (
-                <li key={g.value} className="border-b border-line">
+                <li key={g.value}>
                   <button
                     onClick={() => scrollToCategory(g.value)}
-                    className="flex w-full items-center justify-between py-2.5 text-left text-sm text-steel hover:text-signal"
+                    className="flex w-full items-center justify-between py-2.5 px-3 rounded text-left text-sm font-medium text-steel hover:bg-line hover:text-ink transition-colors"
                   >
                     {g.label}
-                    <span className="font-mono text-xs text-steel-light">{g.list.length}</span>
+                    <span className="font-mono text-xs bg-paper px-2 py-0.5 rounded text-steel-light border border-line">
+                      {g.list.length}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -231,7 +218,7 @@ export default function EquipmentCatalog() {
 
         <div className="flex flex-col gap-12">
           {grouped.length === 0 && machines.length > 0 && (
-            <p className="text-sm text-steel">No machines match "{search}".</p>
+            <p className="text-base text-steel">No machines match the search query "{search}".</p>
           )}
 
           {grouped.map((g) => {
@@ -239,25 +226,24 @@ export default function EquipmentCatalog() {
             const visible = showAll ? g.list : g.list.slice(0, 3);
             return (
               <section key={g.value} id={`cat-${g.value}`} className="scroll-mt-36">
-                <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
-                  <h2 className="font-display text-xl font-semibold text-ink">{g.label}s</h2>
+                <div className="mb-6 flex items-baseline justify-between border-b border-line pb-3">
+                  <h2 className="font-display text-2xl font-bold text-ink">{g.label}s</h2>
                   {g.list.length > 3 && (
                     <button
                       onClick={() => setExpanded((e) => ({ ...e, [g.value]: !e[g.value] }))}
-                      className="text-sm font-medium text-signal hover:text-signal-dark"
+                      className="text-sm font-bold uppercase tracking-wider text-signal hover:text-signal-dark transition-colors"
                     >
-                      {showAll ? "Show fewer" : `See all ${g.list.length} ${g.label.toLowerCase()}s`}
+                      {showAll ? "Show fewer" : `See all ${g.list.length}`}
                     </button>
                   )}
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {visible.map((item) => {
                     const cartEntry = cartItems.find((c) => c.equipmentId === item._id);
                     return (
                       <EquipmentTile
                         key={item._id}
                         item={item}
-                        mode={mode}
                         cartMode={cartEntry ? cartEntry.mode : null}
                         onOpen={() => navigate(`/equipment/${item._id}`)}
                         onAdd={() => handleAdd(item)}
@@ -271,33 +257,21 @@ export default function EquipmentCatalog() {
         </div>
       </div>
 
-      <section className="border border-line bg-surface px-6 py-12 sm:px-10">
-        <h2 className="mb-6 text-center font-display text-3xl font-bold text-ink">
-          Frequently asked questions
+      <section className="border border-line bg-surface px-6 py-12 sm:px-10 rounded-lg mt-10 shadow-sm">
+        <h2 className="mb-8 text-center font-display text-3xl font-bold text-ink">
+          Frequently Asked Questions
         </h2>
         <div className="mx-auto max-w-3xl divide-y divide-line border-y border-line">
           {FAQS.map((f) => (
-            <details key={f.q} className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-ink">
+            <details key={f.q} className="group py-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-base font-bold text-ink">
                 {f.q}
-                <span className="text-signal transition-transform group-open:rotate-45">+</span>
+                <span className="text-signal transition-transform group-open:rotate-45 text-xl font-light">+</span>
               </summary>
-              <p className="mt-3 text-sm text-steel">{f.a}</p>
+              <p className="mt-4 text-sm leading-relaxed text-steel pr-8">{f.a}</p>
             </details>
           ))}
         </div>
-      </section>
-
-      <section className="panel flex flex-wrap items-center justify-between gap-4 p-8">
-        <div>
-          <h2 className="font-display text-2xl font-bold text-ink">Can't find the right machine?</h2>
-          <p className="mt-1 text-sm text-steel">
-            Describe your project and we'll rank what's available for you.
-          </p>
-        </div>
-        <Button size="lg" onClick={() => navigate("/allocation")}>
-          Submit a requirement
-        </Button>
       </section>
     </div>
   );

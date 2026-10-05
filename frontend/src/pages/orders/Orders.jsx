@@ -7,18 +7,13 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 import Button from "../../components/common/Button";
 
 const STATUS_LABEL = {
-  confirmed: "Confirmed",
-  cancelled: "Cancelled",
-  requested: "Requested",
+  pending: "Awaiting admin approval",
   approved: "Approved",
   rejected: "Rejected",
+  cancelled: "Cancelled",
 };
 
-const PAYMENT_LABEL = {
-  cod: "Pay on delivery or on site",
-  bank: "Bank transfer",
-  upi: "UPI",
-};
+const PAYMENT_LABEL = { cod: "Pay on delivery or on site", bank: "Bank transfer", upi: "UPI" };
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -39,7 +34,7 @@ export default function Orders() {
   }, []);
 
   const handleCancel = async (orderId) => {
-    if (!window.confirm("Cancel this order? The machines in it will be released.")) return;
+    if (!window.confirm("Cancel this order?")) return;
     setError("");
     setCancellingId(orderId);
     try {
@@ -82,10 +77,7 @@ export default function Orders() {
               </div>
               <div className="flex items-center gap-4">
                 <span
-                  className={[
-                    "text-sm font-medium",
-                    order.status === "confirmed" ? "text-green-700" : "text-steel",
-                  ].join(" ")}
+                  className={["text-sm font-medium", order.status === "approved" ? "text-green-400" : "text-steel"].join(" ")}
                 >
                   {STATUS_LABEL[order.status] || order.status}
                 </span>
@@ -99,9 +91,7 @@ export default function Orders() {
                   <div>
                     <p className="font-medium text-ink">{item.name}</p>
                     <p className="text-xs text-steel">
-                      {item.mode === "rent"
-                        ? `Rent, ${item.days} days at ${formatINR(item.unitPrice)} per day`
-                        : "Purchase"}
+                      {item.mode === "rent" ? `Rent, ${item.days} days at ${formatINR(item.unitPrice)} per day` : "Purchase"}
                     </p>
                   </div>
                   <span className="font-mono text-ink">{formatINR(item.lineTotal)}</span>
@@ -113,7 +103,7 @@ export default function Orders() {
               <span>
                 {order.contactName}, {order.phone}. Deliver to {order.address}. {PAYMENT_LABEL[order.paymentMethod]}.
               </span>
-              {order.status === "confirmed" && (
+              {["pending", "approved"].includes(order.status) && (
                 <Button
                   size="sm"
                   variant="outline"

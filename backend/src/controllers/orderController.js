@@ -3,8 +3,6 @@ import Equipment from "../models/Equipment.js";
 
 const PAYMENT_METHODS = ["cod", "bank", "upi"];
 
-// Same pricing rules as frontend/src/utils/pricing.js.
-// The server recalculates prices so a client can never set its own.
 function rentPerDay(eq) {
   if (eq.rentPerDay) return Math.round(eq.rentPerDay);
   return Math.round((eq.operatingCostPerDay || 0) * 1.4);
@@ -19,19 +17,12 @@ function buyPrice(eq) {
   return Math.round(((eq.operatingCostPerDay || 0) * 500 * valueFactor) / 1000) * 1000;
 }
 
-async function release(ids) {
-  if (ids.length > 0) {
-    await Equipment.updateMany({ _id: { $in: ids } }, { availability: "available" });
-  }
-}
-
 /**
- * POST /api/orders
- * Body: { items: [{ equipmentId, mode, days }], contactName, phone, address, paymentMethod }
- * Rented machines become "in_use", purchased machines become "sold".
+ * POST /api/orders — any logged-in user. Creates the order as
+ * "pending" and does NOT touch equipment availability — nothing
+ * is reserved until an admin approves it.
  */
 export async function createOrder(req, res) {
-  const reserved = [];
   try {
     const { items, contactName, phone, address, paymentMethod } = req.body;
 
@@ -53,9 +44,7 @@ export async function createOrder(req, res) {
     const lines = [];
     for (const item of items) {
       const eq = byId[String(item.equipmentId)];
-      if (!eq) {
-        return res.status(400).json({ message: "A machine in your cart no longer exists." });
-      }
+      if (!eq) return res.status(400).json({ message: "A machine in your cart no longer exists." });
       if (eq.availability !== "available") {
         return res.status(409).json({
           message: `${eq.name} is no longer available. Remove it from your cart and try again.`,
@@ -77,22 +66,6 @@ export async function createOrder(req, res) {
       });
     }
 
-    // Reserve each machine. The availability condition makes sure two
-    // people can never take the same machine at the same time.
-    for (const line of lines) {
-      const updated = await Equipment.findOneAndUpdate(
-        { _id: line.equipmentId, availability: "available" },
-        { availability: line.mode === "buy" ? "sold" : "in_use" }
-      );
-      if (!updated) {
-        await release(reserved);
-        return res.status(409).json({
-          message: `${line.name} was just taken. Remove it from your cart and try again.`,
-        });
-      }
-      reserved.push(line.equipmentId);
-    }
-
     const total = lines.reduce((sum, l) => sum + l.lineTotal, 0);
     const order = await Order.create({
       user: req.user.id,
@@ -106,14 +79,11 @@ export async function createOrder(req, res) {
 
     res.status(201).json({ order });
   } catch (err) {
-    await release(reserved);
-    res.status(500).json({ message: "Failed to place your order.", error: err.message });
+    res.status(500).json({ message: "Failed to submit your order.", error: err.message });
   }
 }
 
-/**
- * GET /api/orders
- */
+/** GET /api/orders — the logged-in user's own orders. */
 export async function listMyOrders(req, res) {
   try {
     const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(50).lean();
@@ -123,22 +93,92 @@ export async function listMyOrders(req, res) {
   }
 }
 
+/** GET /api/orders/admin — admin only. Every pending order to review. */
+export async function listAllOrders(req, res) {
+  try {
+    const status = req.query.status || "pending";
+    const orders = await Order.find({ status })
+      .populate("user", "name companyName")
+      .sort({ createdAt: 1 })
+      .lean();
+    res.json({ orders });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load orders.", error: err.message });
+  }
+}
+
 /**
- * POST /api/orders/:id/cancel
- * Cancels a confirmed order and releases every machine in it.
+ * POST /api/orders/:id/approve — admin only. Reserves every
+ * machine in the order (in_use for rent, sold for buy).
+ */
+export async function approveOrder(req, res) {
+  const reserved = [];
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found." });
+    if (order.status !== "pending") {
+      return res.status(400).json({ message: "This order has already been reviewed." });
+    }
+
+    for (const item of order.items) {
+      const updated = await Equipment.findOneAndUpdate(
+        { _id: item.equipmentId, availability: "available" },
+        { availability: item.mode === "buy" ? "sold" : "in_use" }
+      );
+      if (!updated) {
+        await Equipment.updateMany({ _id: { $in: reserved } }, { availability: "available" });
+        return res.status(409).json({
+          message: `${item.name} is no longer available. Reject this order and ask the requester to try again.`,
+        });
+      }
+      reserved.push(item.equipmentId);
+    }
+
+    order.status = "approved";
+    await order.save();
+    res.json({ order });
+  } catch (err) {
+    await Equipment.updateMany({ _id: { $in: reserved } }, { availability: "available" });
+    res.status(500).json({ message: "Failed to approve order.", error: err.message });
+  }
+}
+
+/** POST /api/orders/:id/reject — admin only. Nothing to release, since approval never reserved anything. */
+export async function rejectOrder(req, res) {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found." });
+    if (order.status !== "pending") {
+      return res.status(400).json({ message: "This order has already been reviewed." });
+    }
+
+    order.status = "rejected";
+    await order.save();
+    res.json({ order });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to reject order.", error: err.message });
+  }
+}
+
+/**
+ * POST /api/orders/:id/cancel — the order's own user. Releases
+ * equipment only if it was actually reserved (status "approved").
  */
 export async function cancelOrder(req, res) {
   try {
     const order = await Order.findOne({ _id: req.params.id, user: req.user.id });
     if (!order) return res.status(404).json({ message: "Order not found." });
-    if (order.status !== "confirmed") {
-      return res.status(400).json({ message: "Only confirmed orders can be cancelled." });
+    if (!["pending", "approved"].includes(order.status)) {
+      return res.status(400).json({ message: "Only pending or approved orders can be cancelled." });
     }
 
-    await release(order.items.map((i) => i.equipmentId));
+    if (order.status === "approved") {
+      const ids = order.items.map((i) => i.equipmentId);
+      await Equipment.updateMany({ _id: { $in: ids } }, { availability: "available" });
+    }
+
     order.status = "cancelled";
     await order.save();
-
     res.json({ order });
   } catch (err) {
     res.status(500).json({ message: "Failed to cancel the order.", error: err.message });

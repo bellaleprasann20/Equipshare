@@ -58,14 +58,13 @@ export default function RankingTable({ results = [], onSelect }) {
               <td className="px-4 py-2 font-semibold text-gray-900">
                 {r.allocationScore.toFixed(1)}
               </td>
-              <td className="px-4 py-2">
-                <button
-                  onClick={() => onSelect?.(r)}
-                  className="text-xs font-medium text-blue-600 hover:underline"
-                >
-                  Allocate
-                </button>
-              </td>
+             <td className="px-4 py-2">
+  {onSelect && (
+    <button onClick={() => onSelect(r)} className="text-xs font-medium text-signal hover:underline">
+      Allocate
+    </button>
+  )}
+</td>
             </tr>
           ))}
         </tbody>

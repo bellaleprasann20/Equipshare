@@ -29,6 +29,8 @@ import Cart from "../pages/cart/Cart";
 import Checkout from "../pages/cart/Checkout";
 import Orders from "../pages/orders/Orders";
 
+import Approvals from "../pages/admin/Approvals";
+
 import NotFound from "../pages/NotFound";
 
 function RequireAuth({ children }) {
@@ -44,6 +46,15 @@ function RequireAdmin({ children }) {
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
   return children;
+}
+
+// Smart Redirect: Sends Admins to /admin and Managers to /dashboard
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return <Loader fullScreen label="Loading..." />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === "admin") return <Navigate to="/admin" replace />;
+  return <Navigate to="/dashboard" replace />;
 }
 
 // Wraps a page in the login check and the shared layout
@@ -62,33 +73,39 @@ export default function AppRoutes() {
       {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<RootRedirect />} />
 
-      {/* Dashboards */}
+      {/* =========================================
+          MANAGER ZONE (Accessible to all users)
+          ========================================= */}
       <Route path="/dashboard" element={<Page><Dashboard /></Page>} />
-      <Route path="/admin" element={<Page admin><AdminDashboard /></Page>} />
-
-      {/* Equipment: Rent and Buy both use the catalog, switched by ?mode= */}
+      
+      {/* Equipment */}
       <Route path="/equipment" element={<Page><EquipmentCatalog /></Page>} />
       <Route path="/equipment/manage" element={<Page><EquipmentList /></Page>} />
-      <Route path="/equipment/add" element={<Page admin><AddEquipment /></Page>} />
       <Route path="/equipment/:id" element={<Page><EquipmentDetails /></Page>} />
-      <Route path="/equipment/:id/edit" element={<Page admin><EditEquipment /></Page>} />
-
+      
       {/* Allocation */}
       <Route path="/allocation" element={<Page><CreateRequirement /></Page>} />
       <Route path="/allocation/recommendations/:requestId" element={<Page><Recommendations /></Page>} />
       <Route path="/allocation/history" element={<Page><AllocationHistory /></Page>} />
-
-      {/* Insights */}
+      
+      {/* Store & Insights */}
       <Route path="/analytics" element={<Page><Analytics /></Page>} />
-      <Route path="/reports" element={<Page admin><Reports /></Page>} />
-
-      {/* Store */}
       <Route path="/locations" element={<Page><Locations /></Page>} />
       <Route path="/cart" element={<Page><Cart /></Page>} />
       <Route path="/checkout" element={<Page><Checkout /></Page>} />
       <Route path="/orders" element={<Page><Orders /></Page>} />
+
+      {/* =========================================
+          ADMIN ZONE (Protected by RequireAdmin)
+          ========================================= */}
+      <Route path="/admin" element={<Page admin><AdminDashboard /></Page>} />
+      <Route path="/admin/approvals" element={<Page admin><Approvals /></Page>} />
+      
+      <Route path="/equipment/add" element={<Page admin><AddEquipment /></Page>} />
+      <Route path="/equipment/:id/edit" element={<Page admin><EditEquipment /></Page>} />
+      <Route path="/reports" element={<Page admin><Reports /></Page>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

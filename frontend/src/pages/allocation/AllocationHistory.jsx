@@ -10,21 +10,16 @@ import { useAllocation } from "../../hooks/useAllocation";
 const PAGE_SIZE = 10;
 
 const STATUS_STYLES = {
-  completed: "bg-green-100 text-green-700",
-  active: "bg-blue-100 text-blue-700",
-  cancelled: "bg-gray-100 text-gray-500",
+  active: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  completed: "bg-green-500/10 text-green-400 border border-green-500/20",
+  pending: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  cancelled: "bg-gray-500/10 text-gray-400 border border-gray-500/20",
+  released: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
 };
 
 /**
- * List of past allocation requests — what was requested, what
- * equipment was ultimately allocated, and current status. This
- * is also useful evidence for the evaluation section of the
- * research paper (allocation time, unmet requests, etc).
- *
- * Expects useAllocation() to expose:
- *   fetchHistory({ page, pageSize }) -> { items, totalCount }
- *   items: [{ _id, equipmentType, projectLocation, allocatedEquipmentName,
- *             allocationScore, status, createdAt }]
+ * List of past and active allocation requests — showing what was requested,
+ * what equipment was ultimately allocated, and the AI matching score.
  */
 export default function AllocationHistory() {
   const navigate = useNavigate();
@@ -42,10 +37,10 @@ export default function AllocationHistory() {
     fetchHistory({ page, pageSize: PAGE_SIZE })
       .then((res) => {
         if (cancelled) return;
-        setItems(res.items);
-        setTotalCount(res.totalCount);
+        setItems(res.items || res); // Handle varied API responses gracefully
+        setTotalCount(res.totalCount || (res.items ? res.items.length : 0));
       })
-      .catch((err) => !cancelled && setError(err?.response?.data?.message || "Failed to load history."))
+      .catch((err) => !cancelled && setError(err?.response?.data?.message || "Failed to load allocation history."))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -53,67 +48,98 @@ export default function AllocationHistory() {
   }, [page, fetchHistory]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Allocation History</h1>
-        <Button onClick={() => navigate("/allocation")}>+ New Requirement</Button>
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto py-6 px-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-white">Allocation History & Active Deployments</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Track historical site requirements, AI recommendation scores, and manage active machinery releases.
+          </p>
+        </div>
+        <Button variant="primary" onClick={() => navigate("/allocation")} className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white">
+          + New Requirement
+        </Button>
       </div>
 
       {error && <ErrorMessage message={error} />}
 
       {loading ? (
-        <Loader label="Loading history..." />
+        <Loader label="Loading allocation records..." />
       ) : items.length === 0 ? (
-        <EmptyState
-          title="No allocation requests yet"
-          description="Submit your first equipment requirement to see it here."
-          actionLabel="New Requirement"
-          onAction={() => navigate("/allocation")}
-        />
+        <div className="panel bg-[#1c1c1f] border border-[#2a2a2d] p-12 rounded-lg text-center">
+          <EmptyState
+            title="No allocation requests found"
+            description="Submit your first equipment requirement to begin tracking internal fleet allocations."
+            actionLabel="Submit Requirement"
+            onAction={() => navigate("/allocation")}
+          />
+        </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
+          <div className="overflow-x-auto rounded-lg border border-[#2a2a2d] bg-[#1c1c1f] shadow-sm">
+            <table className="min-w-full divide-y divide-[#2a2a2d] text-sm text-left">
+              <thead className="bg-[#161618]">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Date</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Requested Type</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Location</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Allocated Equipment</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Score</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">Date</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">Requested Asset</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">Destination Site</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">Assigned Machine</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">AI Score</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400">Status</th>
+                  <th className="px-6 py-3.5 font-bold uppercase tracking-wider text-xs text-gray-400 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody className="divide-y divide-[#2a2a2d] bg-[#1c1c1f]">
                 {items.map((req) => (
                   <tr
                     key={req._id}
-                    onClick={() => navigate(`/allocation/${req._id}`)}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="hover:bg-[#222225] transition-colors group"
                   >
-                    <td className="px-4 py-2 text-gray-600">
+                    <td className="px-6 py-4 text-gray-300 font-mono text-xs">
                       {new Date(req.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-4 py-2 text-gray-900">{req.equipmentType}</td>
-                    <td className="px-4 py-2 text-gray-600">{req.projectLocation}</td>
-                    <td className="px-4 py-2 text-gray-900">
-                      {req.allocatedEquipmentName || "—"}
+                    <td className="px-6 py-4 font-semibold text-white capitalize">{req.equipmentType || req.category}</td>
+                    <td className="px-6 py-4 text-gray-300">{req.projectLocation || req.address}</td>
+                    <td className="px-6 py-4 text-white font-medium">
+                      {req.allocatedEquipmentName || req.name || "Pending Assignment"}
                     </td>
-                    <td className="px-4 py-2 font-medium text-gray-900">
-                      {req.allocationScore ? req.allocationScore.toFixed(1) : "—"}
+                    <td className="px-6 py-4 font-mono font-bold text-[#8b5cf6]">
+                      {req.allocationScore ? `${req.allocationScore.toFixed(0)}/100` : "—"}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-6 py-4">
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          STATUS_STYLES[req.status] || STATUS_STYLES.cancelled
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                          STATUS_STYLES[req.status] || STATUS_STYLES.pending
                         }`}
                       >
-                        {req.status}
+                        {req.status || "Pending"}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => navigate(`/allocation/${req._id}`)}
+                          className="text-xs font-medium text-gray-400 hover:text-white transition-colors"
+                        >
+                          Details
+                        </button>
+                        {req.status === "active" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Call your release handler here
+                              alert(`Releasing equipment for request #${req._id.slice(-6)} back to available pool.`);
+                            }}
+                            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1 rounded text-xs font-semibold transition-colors"
+                          >
+                            Release Asset
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -20,3 +20,19 @@ export async function cancelOrder(orderId) {
   const { data } = await api.post(`/orders/${orderId}/cancel`);
   return data.order;
 }
+
+// Admin-only
+export async function fetchPendingOrders() {
+  const { data } = await api.get("/orders/admin", { params: { status: "pending" } });
+  return data.orders;
+}
+
+export async function approveOrderRequest(orderId) {
+  const { data } = await api.post(`/orders/${orderId}/approve`);
+  return data.order;
+}
+
+export async function rejectOrderRequest(orderId) {
+  const { data } = await api.post(`/orders/${orderId}/reject`);
+  return data.order;
+}
