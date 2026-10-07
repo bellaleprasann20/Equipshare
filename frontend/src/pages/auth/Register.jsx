@@ -50,8 +50,8 @@ export default function Register() {
     setLoading(true);
     try {
       const { confirmPassword, ...payload } = form;
-      await register(payload);
-      navigate("/dashboard");
+      const newUser = await register(payload);
+      navigate(newUser.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (err) {
       setApiError(err?.response?.data?.message || "Registration failed. Please try again.");
     } finally {
@@ -188,7 +188,7 @@ export default function Register() {
                 type="submit" 
                 loading={loading} 
                 fullWidth 
-                className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-3 border-none transition-colors"
+                className="bg-[#8b5cf6] hover:bg-[#7c3aed] border-none py-3 text-white transition-colors"
               >
                 Create Account
               </Button>
@@ -197,7 +197,7 @@ export default function Register() {
 
           <p className="mt-8 text-center text-sm text-[#a1a1aa]">
             Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors">
+            <Link to="/login" className="font-semibold text-[#a78bfa] transition-colors hover:text-[#c4b5fd] hover:underline">
               Log in to your workspace
             </Link>
           </p>

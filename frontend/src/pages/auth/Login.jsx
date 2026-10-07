@@ -20,8 +20,8 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(form.email, form.password);
-      navigate("/dashboard");
+      const loggedInUser = await login(form.email, form.password);
+      navigate(loggedInUser.role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (err) {
       setError(err?.response?.data?.message || "Invalid email or password.");
     } finally {
@@ -91,7 +91,6 @@ export default function Login() {
             </div>
           )}
 
-          {/* Form wrapper uses color-scheme dark so standard inputs adapt if they aren't fully customized */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-5" style={{ colorScheme: 'dark' }}>
             <Input
               label="Work Email"
@@ -125,7 +124,7 @@ export default function Login() {
                 type="submit" 
                 loading={loading} 
                 fullWidth 
-                className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-3 border-none transition-colors"
+                className="bg-[#8b5cf6] hover:bg-[#7c3aed] border-none py-3 text-white transition-colors"
               >
                 Log In
               </Button>
@@ -134,7 +133,7 @@ export default function Login() {
 
           <p className="mt-8 text-center text-sm text-[#a1a1aa]">
             Don't have an account?{" "}
-            <Link to="/register" className="font-semibold text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors">
+            <Link to="/register" className="font-semibold text-[#a78bfa] transition-colors hover:text-[#c4b5fd] hover:underline">
               Register a new workspace
             </Link>
           </p>
