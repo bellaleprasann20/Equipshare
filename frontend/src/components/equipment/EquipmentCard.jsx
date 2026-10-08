@@ -2,63 +2,143 @@ import React from "react";
 import EEIBadge from "./EEIBadge";
 import MaintenanceStatus from "./MaintenanceStatus";
 
-/**
- * Reference implementation of the new card pattern — uses the
- * "panel" class (hairline border + corner ticks, defined in
- * index.css) instead of the old rounded-corner + soft-shadow
- * card. Apply this same className="panel" swap to other cards
- * across the app (RecommendationCard, StatCard, etc.) to carry
- * the visual language through consistently.
- */
-export default function EquipmentCard({ equipment, onClick, rank = null }) {
+function getAvailability(availability) {
+  if (availability === "available") {
+    return {
+      label: "Available",
+      dot: "bg-emerald-400",
+      text: "text-emerald-400",
+    };
+  }
+
+  if (availability === "reserved") {
+    return {
+      label: "Reserved",
+      dot: "bg-amber-400",
+      text: "text-amber-400",
+    };
+  }
+
+  return {
+    label: "In use",
+    dot: "bg-zinc-500",
+    text: "text-zinc-400",
+  };
+}
+
+export default function EquipmentCard({
+  equipment,
+  onClick,
+  rank = null,
+}) {
   const {
-    name,
-    type,
-    location,
+    name = "Unnamed equipment",
+    type = "Equipment",
+    location = "Location unavailable",
     availability,
     eeiScore,
     lastServiceDate,
     maintenanceIntervalDays,
     imageUrl,
-  } = equipment;
+  } = equipment || {};
+
+  const status = getAvailability(availability);
 
   return (
-    <div onClick={onClick} className="panel cursor-pointer p-4 transition-colors hover:border-ink/30">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          {rank && (
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-signal font-mono text-xs font-bold text-white">
-              {rank}
-            </span>
-          )}
-          <div className="h-11 w-11 shrink-0 overflow-hidden bg-paper">
-            {imageUrl ? (
-              <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-steel-light">▣</div>
-            )}
-          </div>
-          <div>
-            <h3 className="font-display text-sm font-semibold text-ink">{name}</h3>
-            <p className="text-xs text-steel">{type}</p>
-          </div>
-        </div>
-        <EEIBadge score={eeiScore} showLabel={false} />
-      </div>
+    <article
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return;
 
-      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-line pt-3 text-xs text-steel">
-        <span>{location}</span>
-        <span className={availability === "available" ? "font-medium text-green-700" : "text-steel-light"}>
-          {availability === "available" ? "Available" : "In use"}
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`group overflow-hidden border border-zinc-800 bg-[#1c1c1f] transition-all duration-200 ${
+        onClick
+          ? "cursor-pointer hover:-translate-y-0.5 hover:border-violet-500/40 hover:bg-[#202024]"
+          : ""
+      }`}
+    >
+      {/* Image */}
+      <div className="relative h-44 overflow-hidden bg-[#161618]">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <span className="font-display text-5xl font-bold text-zinc-800">
+              {name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
+
+        {rank !== null && (
+          <span className="absolute left-3 top-3 flex h-7 min-w-7 items-center justify-center bg-violet-600 px-2 font-mono text-xs font-bold text-white">
+            #{rank}
+          </span>
+        )}
+
+        <span
+          className={`absolute right-3 top-3 inline-flex items-center gap-1.5 border border-white/10 bg-black/60 px-2.5 py-1 text-xs font-medium backdrop-blur-sm ${status.text}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+          {status.label}
         </span>
       </div>
 
-      <div className="mt-2">
-        <MaintenanceStatus
-          lastServiceDate={lastServiceDate}
-          recommendedIntervalDays={maintenanceIntervalDays || 90}
-        />
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-base font-semibold text-white">
+              {name}
+            </h3>
+
+            <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">
+              {type}
+            </p>
+          </div>
+
+          <div className="shrink-0">
+            <EEIBadge score={eeiScore} showLabel={false} />
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 border-t border-zinc-800 pt-3">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4 shrink-0 text-zinc-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            aria-hidden="true"
+          >
+            <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" />
+            <circle cx="12" cy="10" r="2.3" />
+          </svg>
+
+          <span className="truncate text-xs text-zinc-400">
+            {location}
+          </span>
+        </div>
+
+        <div className="mt-3">
+          <MaintenanceStatus
+            lastServiceDate={lastServiceDate}
+            recommendedIntervalDays={maintenanceIntervalDays || 90}
+          />
+        </div>
       </div>
-    </div>
+    </article>
   );
 }

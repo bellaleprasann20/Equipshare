@@ -3,98 +3,183 @@ import EEIBadge from "../equipment/EEIBadge";
 import AllocationExplanation from "./AllocationExplanation";
 import Button from "../common/Button";
 
-/**
- * Card for ONE ranked recommendation, shown in the results list
- * after a RequirementForm submission. Wraps equipment info +
- * its allocation score + a toggle to see WHY it ranked here.
- *
- * Expected shape of `result` (one item from the backend's
- * ranked array — see allocationService.js contract):
- *   {
- *     rank: 1,
- *     equipment: { _id, name, type, location, eeiScore, imageUrl, ... },
- *     allocationScore: 87.4,        // 0-100, final ranking score
- *     transferDistanceKm: 12.5,
- *     transferCost: 4200,
- *     scoreBreakdown: {             // what fed into allocationScore
- *       eei: 82,
- *       distance: 91,
- *       cost: 88,
- *       durationFit: 100
- *     }
- *   }
- *
- * Usage:
- *   {results.map((r) => <RecommendationCard key={r.equipment._id} result={r} onSelect={handleAllocate} />)}
- */
+function getEquipmentType(equipment) {
+  return equipment?.type || equipment?.category || "Equipment";
+}
+
+function getEquipmentLocation(equipment) {
+  return (
+    equipment?.location ||
+    equipment?.currentLocation?.siteName ||
+    "Location not specified"
+  );
+}
+
+function formatNumber(value, digits = 1) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "—";
+  }
+
+  return number.toFixed(digits);
+}
+
+function formatCurrency(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "—";
+  }
+
+  return `₹${number.toLocaleString("en-IN")}`;
+}
+
 export default function RecommendationCard({ result, onSelect }) {
   const [showExplanation, setShowExplanation] = useState(false);
-  const { rank, equipment, allocationScore, transferDistanceKm, transferCost, scoreBreakdown } =
-    result;
 
-  const isTopPick = rank === 1;
+  if (!result) {
+    return null;
+  }
+
+  const {
+    rank,
+    equipment = {},
+    allocationScore,
+    transferDistanceKm,
+    transferCost,
+    scoreBreakdown,
+  } = result;
+
+  const isTopPick = Number(rank) === 1;
 
   return (
-    <div
+    <article
       className={[
-        "rounded-lg border bg-white p-4 shadow-sm",
-        isTopPick ? "border-blue-400 ring-1 ring-blue-100" : "border-gray-200",
+        "border bg-surface p-4 transition-colors",
+        isTopPick
+          ? "border-signal/60 ring-1 ring-signal/20"
+          : "border-line hover:border-ink/20",
       ].join(" ")}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <span
             className={[
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-              isTopPick ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600",
+              "flex h-9 w-9 shrink-0 items-center justify-center",
+              "font-mono text-sm font-bold",
+              isTopPick
+                ? "bg-signal text-white"
+                : "bg-paper text-steel",
             ].join(" ")}
+            aria-label={`Rank ${rank}`}
           >
-            #{rank}
+            #{rank ?? "—"}
           </span>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">
-              {equipment.name}
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="truncate font-display text-sm font-semibold text-ink">
+                {equipment.name || "Unnamed equipment"}
+              </h3>
+
               {isTopPick && (
-                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                <span className="border border-signal/30 bg-signal/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-signal">
                   Best Match
                 </span>
               )}
-            </h3>
-            <p className="text-xs text-gray-500">
-              {equipment.type} · 📍 {equipment.location}
+            </div>
+
+            <p className="mt-1 text-xs text-steel">
+              {getEquipmentType(equipment)}
+            </p>
+
+            <p className="mt-0.5 text-xs text-steel-light">
+              {getEquipmentLocation(equipment)}
             </p>
           </div>
         </div>
 
-        <div className="text-right">
-          <p className="text-lg font-bold text-gray-900">{allocationScore.toFixed(1)}</p>
-          <p className="text-xs text-gray-400">Allocation Score</p>
+        <div className="shrink-0 text-right">
+          <p className="font-mono text-xl font-bold text-ink">
+            {formatNumber(allocationScore)}
+          </p>
+
+          <p className="text-[10px] uppercase tracking-wide text-steel-light">
+            Allocation Score
+          </p>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-600">
-        <span>EEI: <EEIBadge score={equipment.eeiScore} showLabel={false} /></span>
-        <span>🚚 {transferDistanceKm} km</span>
-        <span>💰 ₹{transferCost.toLocaleString("en-IN")}</span>
+      {/* Metrics */}
+      <div className="mt-4 grid grid-cols-1 gap-2 border-y border-line py-3 sm:grid-cols-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-wide text-steel-light">
+            EEI
+          </p>
+
+          <div className="mt-1">
+            <EEIBadge
+              score={equipment.eeiScore}
+              showLabel={false}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-wide text-steel-light">
+            Transfer Distance
+          </p>
+
+          <p className="mt-1 font-mono text-sm text-ink">
+            {formatNumber(transferDistanceKm)} km
+          </p>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-wide text-steel-light">
+            Transfer Cost
+          </p>
+
+          <p className="mt-1 font-mono text-sm text-ink">
+            {formatCurrency(transferCost)}
+          </p>
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
+      {/* Actions */}
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <button
-          onClick={() => setShowExplanation((v) => !v)}
-          className="text-xs font-medium text-blue-600 hover:underline"
+          type="button"
+          onClick={() => setShowExplanation((current) => !current)}
+          className="text-left text-xs font-semibold text-signal hover:underline"
+          aria-expanded={showExplanation}
         >
-          {showExplanation ? "Hide details" : "Why this ranking?"}
+          {showExplanation
+            ? "Hide ranking explanation"
+            : "Why this ranking?"}
         </button>
-        <Button size="sm" onClick={() => onSelect?.(result)}>
-          Allocate this equipment
-        </Button>
+
+        {onSelect && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onSelect(result)}
+          >
+            Allocate this equipment
+          </Button>
+        )}
       </div>
 
+      {/* Explanation */}
       {showExplanation && (
-        <div className="mt-3 border-t border-gray-100 pt-3">
-          <AllocationExplanation breakdown={scoreBreakdown} />
+        <div className="mt-4 border-t border-line pt-4">
+          <AllocationExplanation
+            breakdown={scoreBreakdown}
+          />
         </div>
       )}
-    </div>
+    </article>
   );
 }

@@ -1,119 +1,369 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-// Core Components
+// ============================================================
+// LAYOUTS & COMMON
+// ============================================================
 import Loader from "../components/common/Loader";
 import AdminLayout from "../components/layout/AdminLayout";
 import UserLayout from "../components/layout/UserLayout";
 
-// Public Pages
+// ============================================================
+// PUBLIC PAGES
+// ============================================================
 import Landing from "../pages/Landing";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import NotFound from "../pages/NotFound";
 
-// Dashboard Pages
+// ============================================================
+// DASHBOARD & PROFILE
+// ============================================================
 import Dashboard from "../pages/dashboard/Dashboard";
 import AdminDashboard from "../pages/dashboard/AdminDashboard";
 import Profile from "../pages/profile/Profile";
 
-// Equipment Pages
+// ============================================================
+// EQUIPMENT
+// ============================================================
 import EquipmentCatalog from "../pages/equipment/EquipmentCatalog";
 import EquipmentList from "../pages/equipment/EquipmentList";
 import EquipmentDetails from "../pages/equipment/EquipmentDetails";
 import AddEquipment from "../pages/equipment/AddEquipment";
 import EditEquipment from "../pages/equipment/EditEquipment";
 
-// Allocation Pages
+// ============================================================
+// ALLOCATION
+// ============================================================
 import CreateRequirement from "../pages/allocation/CreateRequirement";
 import Recommendations from "../pages/allocation/Recommendations";
 import AllocationHistory from "../pages/allocation/AllocationHistory";
 
-// Insights & Store Pages
+// ============================================================
+// ANALYTICS & REPORTS
+// ============================================================
 import Analytics from "../pages/analytics/Analytics";
 import Reports from "../pages/analytics/Reports";
+
+// ============================================================
+// USER WORKSPACE
+// ============================================================
 import Locations from "../pages/locations/Locations";
 import Cart from "../pages/cart/Cart";
 import Checkout from "../pages/cart/Checkout";
 import Orders from "../pages/orders/Orders";
+
+// ============================================================
+// ADMIN
+// ============================================================
 import Approvals from "../pages/admin/Approvals";
 
-/**
- * STRICT AUTH GUARDS
- */
+// ============================================================
+// USER AUTH GUARD
+// ============================================================
+// Allows authenticated project managers/users into the
+// user application.
+//
+// Admin users are redirected to the admin dashboard.
+// Unauthenticated users are redirected to login.
+// ============================================================
 function RequireUser({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <Loader fullScreen label="Authenticating..." />;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "admin") return <Navigate to="/admin/dashboard" replace />;
+
+  if (loading) {
+    return <Loader fullScreen label="Authenticating..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role === "admin") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return children;
 }
 
+// ============================================================
+// ADMIN AUTH GUARD
+// ============================================================
+// Allows only admin users into the admin application.
+//
+// Normal users are redirected to their dashboard.
+// Unauthenticated users are redirected to login.
+// ============================================================
 function RequireAdmin({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <Loader fullScreen label="Authenticating..." />;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
+
+  if (loading) {
+    return <Loader fullScreen label="Authenticating..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== "admin") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 }
 
+// ============================================================
+// APPLICATION ROUTES
+// ============================================================
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* =========================================
-          PUBLIC ROUTES
-          ========================================= */}
-      {/* The Landing page correctly claims the root path */}
+      {/* ======================================================
+          PUBLIC
+          ====================================================== */}
+
       <Route path="/" element={<Landing />} />
+
       <Route path="/login" element={<Login />} />
+
       <Route path="/register" element={<Register />} />
 
-      {/* =========================================
-          ADMIN APP SHELL
-          ========================================= */}
-      <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="profile" element={<Profile />} />
-        
-        <Route path="equipment" element={<EquipmentList />} />
-        <Route path="equipment/add" element={<AddEquipment />} />
-        <Route path="equipment/:id" element={<EquipmentDetails />} />
-        <Route path="equipment/:id/edit" element={<EditEquipment />} />
-        
-        <Route path="approvals" element={<Approvals />} />
-        <Route path="reports" element={<Reports />} />
+      {/* ======================================================
+          ADMIN APPLICATION
+          ====================================================== */}
+
+      <Route
+        path="/admin"
+        element={
+          <RequireAdmin>
+            <AdminLayout />
+          </RequireAdmin>
+        }
+      >
+        {/* /admin -> /admin/dashboard */}
+        <Route
+          index
+          element={<Navigate to="dashboard" replace />}
+        />
+
+        {/* ----------------------------------------------------
+            ADMIN DASHBOARD
+            ---------------------------------------------------- */}
+
+        <Route
+          path="dashboard"
+          element={<AdminDashboard />}
+        />
+
+        {/* ----------------------------------------------------
+            ADMIN PROFILE
+            ---------------------------------------------------- */}
+
+        <Route
+          path="profile"
+          element={<Profile />}
+        />
+
+        {/* ----------------------------------------------------
+            ADMIN EQUIPMENT
+            ---------------------------------------------------- */}
+
+        {/* /admin/equipment */}
+        <Route
+          path="equipment"
+          element={<EquipmentList />}
+        />
+
+        {/* /admin/equipment/add */}
+        <Route
+          path="equipment/add"
+          element={<AddEquipment />}
+        />
+
+        {/* /admin/equipment/:id */}
+        <Route
+          path="equipment/:id"
+          element={<EquipmentDetails />}
+        />
+
+        {/* /admin/equipment/:id/edit */}
+        <Route
+          path="equipment/:id/edit"
+          element={<EditEquipment />}
+        />
+
+        {/* ----------------------------------------------------
+            ADMIN APPROVALS
+            ---------------------------------------------------- */}
+
+        {/* /admin/approvals */}
+        <Route
+          path="approvals"
+          element={<Approvals />}
+        />
+
+        {/* ----------------------------------------------------
+            ADMIN REPORTS
+            ---------------------------------------------------- */}
+
+        {/* /admin/reports */}
+        <Route
+          path="reports"
+          element={<Reports />}
+        />
       </Route>
 
-      {/* =========================================
-          PROJECT MANAGER APP SHELL
-          ========================================= */}
-      {/* 
-          CRITICAL FIX: Removed path="/" from here. 
-          This is now a "pathless layout route" that protects all the children below it 
-          without hijacking the Landing page.
-      */}
-      <Route element={<RequireUser><UserLayout /></RequireUser>}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        
-        <Route path="/equipment" element={<EquipmentCatalog />} />
-        <Route path="/equipment/:id" element={<EquipmentDetails />} />
-        
-        <Route path="/allocation" element={<CreateRequirement />} />
-        <Route path="/allocation/recommendations/:requestId" element={<Recommendations />} />
-        <Route path="/allocation/history" element={<AllocationHistory />} />
-        
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/locations" element={<Locations />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/orders" element={<Orders />} />
+      {/* ======================================================
+          PROJECT MANAGER / USER APPLICATION
+          ======================================================
+
+          IMPORTANT:
+          This is intentionally a PATHLESS layout route.
+
+          User pages are therefore wrapped by UserLayout,
+          while their actual URLs remain /dashboard, /equipment,
+          /allocation, etc.
+          ====================================================== */}
+
+      <Route
+        element={
+          <RequireUser>
+            <UserLayout />
+          </RequireUser>
+        }
+      >
+        {/* ----------------------------------------------------
+            DASHBOARD
+            ---------------------------------------------------- */}
+
+        {/* /dashboard */}
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+        {/* ----------------------------------------------------
+            PROFILE
+            ---------------------------------------------------- */}
+
+        {/* /profile */}
+        <Route
+          path="/profile"
+          element={<Profile />}
+        />
+
+        {/* ====================================================
+            USER EQUIPMENT
+            ==================================================== */}
+
+        {/* /equipment
+            ↓
+            EquipmentCatalog
+        */}
+        <Route
+          path="/equipment"
+          element={<EquipmentCatalog />}
+        />
+
+        {/* /equipment/:id
+            ↓
+            EquipmentDetails
+        */}
+        <Route
+          path="/equipment/:id"
+          element={<EquipmentDetails />}
+        />
+
+        {/* ====================================================
+            SMART ALLOCATION
+            ==================================================== */}
+
+        {/* /allocation
+            ↓
+            Run Smart Allocation
+        */}
+        <Route
+          path="/allocation"
+          element={<CreateRequirement />}
+        />
+
+        {/* /allocation/recommendations/:requestId
+            ↓
+            Ranked equipment recommendations
+        */}
+        <Route
+          path="/allocation/recommendations/:requestId"
+          element={<Recommendations />}
+        />
+
+        {/* /allocation/history
+            ↓
+            Previous allocation requests
+        */}
+        <Route
+          path="/allocation/history"
+          element={<AllocationHistory />}
+        />
+
+        {/* ====================================================
+            ANALYTICS
+            ==================================================== */}
+
+        {/* /analytics */}
+        <Route
+          path="/analytics"
+          element={<Analytics />}
+        />
+
+        {/* ====================================================
+            LOCATIONS
+            ==================================================== */}
+
+        {/* /locations */}
+        <Route
+          path="/locations"
+          element={<Locations />}
+        />
+
+        {/* ====================================================
+            CART
+            ==================================================== */}
+
+        {/* /cart */}
+        <Route
+          path="/cart"
+          element={<Cart />}
+        />
+
+        {/* ====================================================
+            CHECKOUT
+            ==================================================== */}
+
+        {/* /checkout */}
+        <Route
+          path="/checkout"
+          element={<Checkout />}
+        />
+
+        {/* ====================================================
+            ORDERS
+            ==================================================== */}
+
+        {/* /orders */}
+        <Route
+          path="/orders"
+          element={<Orders />}
+        />
       </Route>
 
-      {/* 404 Fallback */}
-      <Route path="*" element={<NotFound />} />
+      {/* ======================================================
+          404
+          ====================================================== */}
+
+      <Route
+        path="*"
+        element={<NotFound />}
+      />
     </Routes>
   );
 }

@@ -1,35 +1,78 @@
 import React from "react";
 
-/**
- * EEI score, styled like a spec-sheet readout (monospace number,
- * small band label) rather than a generic colored pill — this is
- * the single most-seen element in the app, worth being deliberate
- * about instead of defaulting to a rounded-full badge.
- */
 function getBand(score) {
-  if (score >= 80) return { label: "Excellent", color: "text-green-700", bar: "bg-green-600" };
-  if (score >= 60) return { label: "Good", color: "text-blueprint", bar: "bg-blueprint" };
-  if (score >= 40) return { label: "Fair", color: "text-caution", bar: "bg-caution" };
-  return { label: "Poor", color: "text-red-700", bar: "bg-red-600" };
+  if (score >= 80) {
+    return {
+      label: "Excellent",
+      text: "text-emerald-400",
+      bar: "bg-emerald-400",
+    };
+  }
+
+  if (score >= 60) {
+    return {
+      label: "Good",
+      text: "text-sky-400",
+      bar: "bg-sky-400",
+    };
+  }
+
+  if (score >= 40) {
+    return {
+      label: "Fair",
+      text: "text-amber-400",
+      bar: "bg-amber-400",
+    };
+  }
+
+  return {
+    label: "Poor",
+    text: "text-red-400",
+    bar: "bg-red-400",
+  };
 }
 
 export default function EEIBadge({ score, showLabel = true }) {
-  if (score === null || score === undefined) {
-    return <span className="font-mono text-sm text-steel-light">— N/A</span>;
+  const numericScore = Number(score);
+
+  if (!Number.isFinite(numericScore)) {
+    return (
+      <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
+        <span className="h-1.5 w-8 bg-zinc-800" />
+        <span className="font-mono">—</span>
+        {showLabel && <span>No score</span>}
+      </span>
+    );
   }
 
-  const { label, color, bar } = getBand(score);
+  const safeScore = Math.min(100, Math.max(0, numericScore));
+  const roundedScore = Math.round(safeScore);
+  const { label, text, bar } = getBand(safeScore);
 
   return (
-    <span className="inline-flex items-center gap-2" title={`Equipment Efficiency Index: ${score}/100`}>
-      <span className="relative h-1.5 w-8 bg-line">
+    <span
+      className="inline-flex items-center gap-2"
+      title={`Equipment Efficiency Index: ${roundedScore}/100`}
+    >
+      <span
+        className="relative h-1.5 w-10 overflow-hidden bg-zinc-800"
+        aria-hidden="true"
+      >
         <span
-          className={`absolute inset-y-0 left-0 ${bar}`}
-          style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
+          className={`absolute inset-y-0 left-0 ${bar} transition-all`}
+          style={{ width: `${safeScore}%` }}
         />
       </span>
-      <span className={`font-mono text-sm font-semibold ${color}`}>{Math.round(score)}</span>
-      {showLabel && <span className="text-xs text-steel">{label}</span>}
+
+      <span className={`font-mono text-sm font-semibold ${text}`}>
+        {roundedScore}
+      </span>
+
+      {showLabel && (
+        <span className="text-xs text-zinc-500">
+          {label}
+        </span>
+      )}
     </span>
   );
 }

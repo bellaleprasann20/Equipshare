@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -10,73 +10,235 @@ import {
   CartesianGrid,
 } from "recharts";
 
-// Matches the current --theme tokens in index.css. Recharts can't
-// read CSS custom properties directly, so these are kept as plain
-// hex and must be updated by hand if index.css colors change again.
-const UTILIZATION_COLOR = "#7c5cfc"; // signal
-const IDLE_COLOR = "#333338"; // line
-const AXIS_TEXT_COLOR = "#9a9aa1"; // steel
-const TOOLTIP_BG = "#232327"; // surface
-const TOOLTIP_BORDER = "#333338"; // line
-const TOOLTIP_TEXT = "#e8e8ea"; // ink
+// EquipShare theme tokens.
+// Recharts cannot reliably consume Tailwind/CSS variables directly.
+const COLORS = {
+  utilization: "#7c5cfc",
+  idle: "#333338",
+  axis: "#9a9aa1",
+  grid: "#333338",
+  tooltipBackground: "#232327",
+  tooltipBorder: "#333338",
+  tooltipText: "#e8e8ea",
+};
+
+function clampPercentage(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, number));
+}
+
+function normalizeData(data) {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .map((item, index) => ({
+      ...item,
+
+      // Keep the existing backend contract:
+      // label, utilization, idle
+      label: item?.label || `Item ${index + 1}`,
+
+      utilization: clampPercentage(item?.utilization),
+
+      idle:
+        item?.idle !== undefined && item?.idle !== null
+          ? clampPercentage(item.idle)
+          : clampPercentage(100 - Number(item?.utilization || 0)),
+    }))
+    .filter((item) => item.label);
+}
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div
+      className="min-w-[160px] border border-line bg-surface px-3 py-2 shadow-xl"
+      style={{
+        color: COLORS.tooltipText,
+      }}
+    >
+      <p className="mb-2 text-xs font-semibold text-ink">
+        {label}
+      </p>
+
+      <div className="space-y-1.5">
+        {payload.map((entry) => {
+          const name =
+            entry.dataKey === "utilization"
+              ? "Utilization"
+              : "Idle";
+
+          return (
+            <div
+              key={entry.dataKey}
+              className="flex items-center justify-between gap-4 text-xs"
+            >
+              <span className="text-steel">
+                {name}
+              </span>
+
+              <span className="font-mono font-semibold text-ink">
+                {Number(entry.value).toFixed(0)}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function UtilizationChart({
   data = [],
   title = "Utilization Overview",
   height = 320,
 }) {
-  if (data.length === 0) {
+  const chartData = useMemo(
+    () => normalizeData(data),
+    [data]
+  );
+
+  if (chartData.length === 0) {
     return (
-      <div className="panel flex items-center justify-center p-8 text-sm text-steel">
-        No utilization data yet.
+      <div
+        className="panel flex min-h-[220px] items-center justify-center p-8"
+        aria-label="Utilization chart has no data"
+      >
+        <div className="text-center">
+          <p className="font-display text-sm font-semibold text-ink">
+            {title}
+          </p>
+
+          <p className="mt-1 text-xs text-steel">
+            No utilization data available yet.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="panel p-5">
-      <h3 className="mb-4 font-display text-base font-semibold text-ink">{title}</h3>
-      <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="2 4" stroke={IDLE_COLOR} vertical={false} />
+    <section
+      className="panel p-5"
+      aria-label={title}
+    >
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-signal">
+            Fleet Analytics
+          </p>
+
+          <h3 className="mt-1 font-display text-base font-semibold text-ink">
+            {title}
+          </h3>
+        </div>
+
+        <span className="font-mono text-[10px] text-steel-light">
+          0–100%
+        </span>
+      </div>
+
+      <ResponsiveContainer
+        width="100%"
+        height={height}
+      >
+        <BarChart
+          data={chartData}
+          margin={{
+            top: 8,
+            right: 12,
+            left: 0,
+            bottom: 8,
+          }}
+          barCategoryGap="24%"
+        >
+          <CartesianGrid
+            strokeDasharray="2 4"
+            stroke={COLORS.grid}
+            vertical={false}
+          />
+
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 11, fill: AXIS_TEXT_COLOR, fontFamily: "IBM Plex Mono" }}
-            axisLine={{ stroke: IDLE_COLOR }}
+            tick={{
+              fontSize: 11,
+              fill: COLORS.axis,
+              fontFamily: "IBM Plex Mono",
+            }}
+            axisLine={{
+              stroke: COLORS.grid,
+            }}
             tickLine={false}
+            tickMargin={8}
           />
+
           <YAxis
-            tick={{ fontSize: 11, fill: AXIS_TEXT_COLOR, fontFamily: "IBM Plex Mono" }}
+            domain={[0, 100]}
+            tickCount={6}
+            tick={{
+              fontSize: 11,
+              fill: COLORS.axis,
+              fontFamily: "IBM Plex Mono",
+            }}
             axisLine={false}
             tickLine={false}
-            domain={[0, 100]}
-            tickFormatter={(v) => `${v}%`}
+            tickFormatter={(value) => `${value}%`}
+            width={42}
           />
+
           <Tooltip
-            cursor={{ fill: "rgba(124,92,252,0.08)" }}
-            formatter={(value, name) => [
-              `${value}%`,
-              name === "utilization" ? "Utilization" : "Idle",
-            ]}
-            contentStyle={{
-              borderRadius: 2,
-              fontSize: 12,
-              backgroundColor: TOOLTIP_BG,
-              border: `1px solid ${TOOLTIP_BORDER}`,
-              color: TOOLTIP_TEXT,
-              boxShadow: "none",
+            cursor={{
+              fill: "rgba(124, 92, 252, 0.08)",
             }}
-            labelStyle={{ color: TOOLTIP_TEXT }}
-            itemStyle={{ color: TOOLTIP_TEXT }}
+            content={<CustomTooltip />}
           />
+
           <Legend
-            formatter={(value) => (value === "utilization" ? "Utilization" : "Idle")}
-            wrapperStyle={{ fontSize: 12, color: AXIS_TEXT_COLOR }}
+            verticalAlign="bottom"
+            height={28}
+            iconType="square"
+            iconSize={8}
+            formatter={(value) =>
+              value === "utilization"
+                ? "Utilization"
+                : "Idle"
+            }
+            wrapperStyle={{
+              fontSize: 11,
+              color: COLORS.axis,
+              fontFamily: "IBM Plex Mono",
+            }}
           />
-          <Bar dataKey="utilization" stackId="a" fill={UTILIZATION_COLOR} />
-          <Bar dataKey="idle" stackId="a" fill={IDLE_COLOR} />
+
+          <Bar
+            dataKey="utilization"
+            name="utilization"
+            stackId="utilization"
+            fill={COLORS.utilization}
+            radius={[2, 2, 0, 0]}
+            maxBarSize={48}
+          />
+
+          <Bar
+            dataKey="idle"
+            name="idle"
+            stackId="utilization"
+            fill={COLORS.idle}
+            radius={[0, 0, 2, 2]}
+            maxBarSize={48}
+          />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </section>
   );
 }

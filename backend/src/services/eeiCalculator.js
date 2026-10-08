@@ -1,158 +1,526 @@
-/**
- * Equipment Efficiency Index (EEI) Calculator
- * ============================================
- * This is the core "smart" contribution the Phase-1 review asked
- * for — a formally defined, weighted, multi-factor score (0-100)
- * summarizing how efficient/healthy a piece of equipment is.
- *
- * EEI = w1*Utilization + w2*Reliability + w3*Maintenance
- *     + w4*AgeScore    + w5*CostEfficiency
- *
- * Each factor is normalized to 0-100 BEFORE weighting, so weights
- * are directly interpretable as "% importance" and sum to 1.
- *
- * WEIGHTS ARE MACHINE-LEARNED, NOT HAND-PICKED.
- * ----------------------------------------------
- * These weights were produced by training a Linear Regression
- * model (scikit-learn) on the equipment dataset — see
- * research/algorithms/train_eei_model.py for the full training
- * pipeline, and research/algorithms/learned_weights.json for the
- * raw output. The model was evaluated against a held-out test
- * split and against the original hand-picked-weight formula as a
- * baseline; the trained model achieved a higher R² (0.9497 vs
- * 0.9090), a documented, honest result reported in
- * research/algorithms/model_comparison.json.
- *
- * To retrain (e.g. after the dataset changes): run
- *   python research/algorithms/train_eei_model.py
- * and copy the new "weights" object from learned_weights.json
- * into DEFAULT_WEIGHTS below.
- */
+ /**
+  * Equipment Efficiency Index (EEI) Calculator
+  * ============================================
+  *
+  * EEI =
+  *
+  *   Utilization
+  *   Reliability
+  *   Maintenance
+  *   Age
+  *   Cost Efficiency
+  *
+  * Each factor is normalized to 0-100 before applying
+  * the configured weights.
+  *
+  * The current default weights are the learned weights
+  * supplied by the project methodology.
+  */
 
-export const DEFAULT_WEIGHTS = {
-  // Learned via Linear Regression (scikit-learn), trained on 150
-  // equipment records, test R^2 = 0.9497. See
-  // research/algorithms/learned_weights.json for the full
-  // training output (raw coefficients, intercept, seed).
+export const DEFAULT_WEIGHTS = Object.freeze({
   utilization: 0.2663,
   reliability: 0.3513,
   maintenance: 0.2008,
   age: 0.0666,
   cost: 0.1149,
-};
+});
 
 /**
- * Utilization factor: % of available time actually operating,
- * over the last 30 days. Already 0-100 by definition.
- */
-function computeUtilizationScore(equipment) {
-  const { operatingHoursLast30Days = 0, idleHoursLast30Days = 0 } = equipment;
-  const totalHours = operatingHoursLast30Days + idleHoursLast30Days;
-  if (totalHours === 0) return 50; // no data yet — neutral default, not penalized
-  return clamp((operatingHoursLast30Days / totalHours) * 100, 0, 100);
-}
-
-/**
- * Reliability factor: inverse of breakdown rate relative to jobs
- * assigned. 0 breakdowns -> 100. Breakdown rate >= 50% -> 0.
- */
-function computeReliabilityScore(equipment) {
-  const { breakdownCount = 0, totalJobsAssigned = 0 } = equipment;
-  if (totalJobsAssigned === 0) return 70; // no history yet — mild neutral default
-  const breakdownRate = breakdownCount / totalJobsAssigned;
-  return clamp(100 - breakdownRate * 200, 0, 100); // 50% breakdown rate -> 0
-}
-
-/**
- * Maintenance factor: how recently serviced, relative to the
- * equipment's own recommended interval. On time -> 100,
- * at/over the interval -> approaches 0.
- */
-function computeMaintenanceScore(equipment) {
-  const { lastServiceDate, maintenanceIntervalDays = 90 } = equipment;
-  if (!lastServiceDate) return 40; // no record — penalized but not zeroed
-  const daysSince = (Date.now() - new Date(lastServiceDate).getTime()) / (1000 * 60 * 60 * 24);
-  const ratio = daysSince / maintenanceIntervalDays;
-  return clamp(100 - ratio * 100, 0, 100);
-}
-
-/**
- * Age factor: newer equipment scores higher, using a 10-year
- * depreciation-style curve. Equipment with no purchaseDate gets
- * a neutral default rather than being penalized for missing data.
- */
-function computeAgeScore(equipment, maxAgeYears = 10) {
-  const { purchaseDate } = equipment;
-  if (!purchaseDate) return 60;
-  const ageYears = (Date.now() - new Date(purchaseDate).getTime()) / (1000 * 60 * 60 * 24 * 365);
-  return clamp(100 - (ageYears / maxAgeYears) * 100, 0, 100);
-}
-
-/**
- * Cost efficiency factor: cheaper operating cost relative to the
- * FLEET's cost range scores higher. This needs fleet context
- * (min/max cost across all equipment), passed in by the caller
- * (allocationService.js fetches the fleet range once per request
- * rather than per equipment, for efficiency).
- */
-function computeCostScore(equipment, fleetCostRange) {
-  const cost = equipment.operatingCostPerDay ?? 0;
-  const { min = 0, max = 0 } = fleetCostRange || {};
-  if (max === min) return 70; // no meaningful variation in the fleet — neutral default
-  const normalized = (cost - min) / (max - min); // 0 = cheapest, 1 = most expensive
-  return clamp(100 - normalized * 100, 0, 100);
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-/**
- * Main entry point. Computes the full EEI score + per-factor
- * breakdown for one piece of equipment.
+ * Utilization factor.
  *
- * @param {Object} equipment - equipment document (or plain object)
- *   with the raw fields above.
- * @param {Object} [fleetCostRange] - { min, max } operatingCostPerDay
- *   across the fleet, used to normalize the cost factor. If omitted,
- *   cost defaults to a neutral score (70).
- * @param {Object} [weights] - override DEFAULT_WEIGHTS if needed
- *   (e.g. for AHP-derived weights, or for running the experiment
- *   comparisons in research/algorithms/ with different weight sets).
+ * Uses the last 30 days:
  *
- * @returns {{ score: number, breakdown: Object }}
- *   score: final EEI, 0-100, rounded to 1 decimal
- *   breakdown: per-factor scores (0-100 each), for the
- *   AllocationExplanation UI and for the paper's ablation analysis
+ * operating / (operating + idle) × 100
  */
-export function calculateEEI(equipment, fleetCostRange = null, weights = DEFAULT_WEIGHTS) {
+function computeUtilizationScore(
+  equipment
+) {
+  const operatingHours = nonNegativeNumber(
+    equipment?.operatingHoursLast30Days
+  );
+
+  const idleHours = nonNegativeNumber(
+    equipment?.idleHoursLast30Days
+  );
+
+  const totalHours =
+    operatingHours + idleHours;
+
+  /*
+   * No utilization history.
+   *
+   * Neutral value rather than automatically treating
+   * missing data as failure.
+   */
+  if (totalHours === 0) {
+    return 50;
+  }
+
+  return clamp(
+    (operatingHours / totalHours) *
+      100,
+    0,
+    100
+  );
+}
+
+/**
+ * Reliability factor.
+ *
+ * Breakdown rate:
+ *
+ * breakdownCount / totalJobsAssigned
+ *
+ * 0 breakdowns = 100
+ * 50% breakdown rate = 0
+ */
+function computeReliabilityScore(
+  equipment
+) {
+  const breakdownCount =
+    nonNegativeNumber(
+      equipment?.breakdownCount
+    );
+
+  const totalJobs =
+    nonNegativeNumber(
+      equipment?.totalJobsAssigned
+    );
+
+  /*
+   * No job history.
+   *
+   * Use a neutral/mildly positive default.
+   */
+  if (totalJobs === 0) {
+    return 70;
+  }
+
+  const breakdownRate =
+    breakdownCount / totalJobs;
+
+  return clamp(
+    100 -
+      breakdownRate * 200,
+    0,
+    100
+  );
+}
+
+/**
+ * Maintenance factor.
+ *
+ * Compares days since last service against
+ * the equipment's maintenance interval.
+ */
+function computeMaintenanceScore(
+  equipment
+) {
+  const maintenanceInterval =
+    nonNegativeNumber(
+      equipment?.maintenanceIntervalDays
+    );
+
+  if (
+    maintenanceInterval <= 0
+  ) {
+    return 40;
+  }
+
+  if (!equipment?.lastServiceDate) {
+    return 40;
+  }
+
+  const serviceDate =
+    new Date(
+      equipment.lastServiceDate
+    );
+
+  if (
+    Number.isNaN(
+      serviceDate.getTime()
+    )
+  ) {
+    return 40;
+  }
+
+  const now = Date.now();
+
+  /*
+   * Future service dates should not produce
+   * a score above 100.
+   */
+  const millisecondsSince =
+    Math.max(
+      0,
+      now - serviceDate.getTime()
+    );
+
+  const daysSince =
+    millisecondsSince /
+    (1000 * 60 * 60 * 24);
+
+  const ratio =
+    daysSince /
+    maintenanceInterval;
+
+  return clamp(
+    100 - ratio * 100,
+    0,
+    100
+  );
+}
+
+/**
+ * Age factor.
+ *
+ * Uses a 10-year reference curve.
+ */
+function computeAgeScore(
+  equipment,
+  maxAgeYears = 10
+) {
+  if (!equipment?.purchaseDate) {
+    return 60;
+  }
+
+  const purchaseDate =
+    new Date(
+      equipment.purchaseDate
+    );
+
+  if (
+    Number.isNaN(
+      purchaseDate.getTime()
+    )
+  ) {
+    return 60;
+  }
+
+  const millisecondsSince =
+    Math.max(
+      0,
+      Date.now() -
+        purchaseDate.getTime()
+    );
+
+  const ageYears =
+    millisecondsSince /
+    (1000 * 60 * 60 * 24 * 365);
+
+  return clamp(
+    100 -
+      (ageYears /
+        maxAgeYears) *
+        100,
+    0,
+    100
+  );
+}
+
+/**
+ * Cost efficiency.
+ *
+ * Lower operating cost = higher score.
+ */
+function computeCostScore(
+  equipment,
+  fleetCostRange
+) {
+  const cost =
+    nonNegativeNumber(
+      equipment?.operatingCostPerDay
+    );
+
+  const min =
+    Number(fleetCostRange?.min);
+
+  const max =
+    Number(fleetCostRange?.max);
+
+  /*
+   * If fleet cost data is unavailable or has
+   * no variation, use neutral score.
+   */
+  if (
+    !Number.isFinite(min) ||
+    !Number.isFinite(max) ||
+    max <= min
+  ) {
+    return 70;
+  }
+
+  const normalized =
+    (cost - min) /
+    (max - min);
+
+  return clamp(
+    100 -
+      normalized * 100,
+    0,
+    100
+  );
+}
+
+/**
+ * Main EEI calculation.
+ *
+ * @param {Object} equipment
+ * @param {{min:number,max:number}|null} fleetCostRange
+ * @param {Object} weights
+ *
+ * @returns {{
+ *   score:number,
+ *   breakdown:Object
+ * }}
+ */
+export function calculateEEI(
+  equipment,
+  fleetCostRange = null,
+  weights = DEFAULT_WEIGHTS
+) {
+  const safeWeights =
+    normalizeWeights(weights);
+
   const breakdown = {
-    utilization: computeUtilizationScore(equipment),
-    reliability: computeReliabilityScore(equipment),
-    maintenance: computeMaintenanceScore(equipment),
-    age: computeAgeScore(equipment),
-    cost: computeCostScore(equipment, fleetCostRange),
+    utilization:
+      computeUtilizationScore(
+        equipment
+      ),
+
+    reliability:
+      computeReliabilityScore(
+        equipment
+      ),
+
+    maintenance:
+      computeMaintenanceScore(
+        equipment
+      ),
+
+    age:
+      computeAgeScore(
+        equipment
+      ),
+
+    cost:
+      computeCostScore(
+        equipment,
+        fleetCostRange
+      ),
   };
 
   const score =
-    breakdown.utilization * weights.utilization +
-    breakdown.reliability * weights.reliability +
-    breakdown.maintenance * weights.maintenance +
-    breakdown.age * weights.age +
-    breakdown.cost * weights.cost;
+    breakdown.utilization *
+      safeWeights.utilization +
+
+    breakdown.reliability *
+      safeWeights.reliability +
+
+    breakdown.maintenance *
+      safeWeights.maintenance +
+
+    breakdown.age *
+      safeWeights.age +
+
+    breakdown.cost *
+      safeWeights.cost;
 
   return {
-    score: Math.round(score * 10) / 10,
-    breakdown,
+    score: roundToOneDecimal(
+      clamp(score, 0, 100)
+    ),
+
+    breakdown: {
+      utilization:
+        roundToOneDecimal(
+          breakdown.utilization
+        ),
+
+      reliability:
+        roundToOneDecimal(
+          breakdown.reliability
+        ),
+
+      maintenance:
+        roundToOneDecimal(
+          breakdown.maintenance
+        ),
+
+      age:
+        roundToOneDecimal(
+          breakdown.age
+        ),
+
+      cost:
+        roundToOneDecimal(
+          breakdown.cost
+        ),
+    },
   };
 }
 
 /**
- * Computes { min, max } operatingCostPerDay across a list of
- * equipment — call once before scoring a batch, pass the result
- * as fleetCostRange to calculateEEI for each item.
+ * Calculate the fleet-wide cost range once.
+ *
+ * This prevents calculating min/max for every equipment
+ * candidate separately.
  */
-export function computeFleetCostRange(equipmentList) {
-  const costs = equipmentList.map((e) => e.operatingCostPerDay ?? 0);
-  return { min: Math.min(...costs), max: Math.max(...costs) };
+export function computeFleetCostRange(
+  equipmentList
+) {
+  if (
+    !Array.isArray(equipmentList) ||
+    equipmentList.length === 0
+  ) {
+    return {
+      min: 0,
+      max: 0,
+    };
+  }
+
+  const costs = equipmentList
+    .map((equipment) =>
+      Number(
+        equipment?.operatingCostPerDay
+      )
+    )
+    .filter(
+      (cost) =>
+        Number.isFinite(cost) &&
+        cost >= 0
+    );
+
+  if (costs.length === 0) {
+    return {
+      min: 0,
+      max: 0,
+    };
+  }
+
+  return {
+    min: Math.min(...costs),
+    max: Math.max(...costs),
+  };
+}
+
+/**
+ * Normalize custom weights.
+ *
+ * This allows future experiments with AHP,
+ * learned weights, or alternative models.
+ */
+function normalizeWeights(weights) {
+  const raw = {
+    utilization: Number(
+      weights?.utilization
+    ),
+
+    reliability: Number(
+      weights?.reliability
+    ),
+
+    maintenance: Number(
+      weights?.maintenance
+    ),
+
+    age: Number(
+      weights?.age
+    ),
+
+    cost: Number(
+      weights?.cost
+    ),
+  };
+
+  const values = Object.values(raw);
+
+  const valid =
+    values.every(
+      (value) =>
+        Number.isFinite(value) &&
+        value >= 0
+    );
+
+  if (!valid) {
+    return DEFAULT_WEIGHTS;
+  }
+
+  const total = values.reduce(
+    (sum, value) =>
+      sum + value,
+    0
+  );
+
+  if (total <= 0) {
+    return DEFAULT_WEIGHTS;
+  }
+
+  /*
+   * Normalize so the weights always sum to 1.
+   */
+  return {
+    utilization:
+      raw.utilization / total,
+
+    reliability:
+      raw.reliability / total,
+
+    maintenance:
+      raw.maintenance / total,
+
+    age:
+      raw.age / total,
+
+    cost:
+      raw.cost / total,
+  };
+}
+
+/**
+ * Convert invalid/negative numbers to 0.
+ */
+function nonNegativeNumber(value) {
+  const number = Number(value);
+
+  if (
+    !Number.isFinite(number) ||
+    number < 0
+  ) {
+    return 0;
+  }
+
+  return number;
+}
+
+/**
+ * Clamp number to range.
+ */
+function clamp(
+  value,
+  min,
+  max
+) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return min;
+  }
+
+  return Math.min(
+    max,
+    Math.max(min, number)
+  );
+}
+
+/**
+ * Round to one decimal place.
+ */
+function roundToOneDecimal(
+  value
+) {
+  return (
+    Math.round(value * 10) /
+    10
+  );
 }

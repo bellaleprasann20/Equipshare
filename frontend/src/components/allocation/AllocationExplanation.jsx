@@ -1,18 +1,5 @@
 import React from "react";
 
-/**
- * Shows the factor-by-factor breakdown behind an allocation
- * score — this is what makes the ranking "explainable" instead
- * of a black box, which is exactly what the guide's review
- * asked for (a defensible, transparent multi-factor mechanism).
- *
- * Expected shape of `breakdown` (0-100 per factor, matches
- * what allocationService.js should return per candidate):
- *   { eei: 82, distance: 91, cost: 88, durationFit: 100 }
- *
- * Usage:
- *   <AllocationExplanation breakdown={result.scoreBreakdown} />
- */
 const FACTOR_LABELS = {
   eei: "Equipment Efficiency (EEI)",
   distance: "Proximity to project",
@@ -20,30 +7,77 @@ const FACTOR_LABELS = {
   durationFit: "Availability duration fit",
 };
 
+function getSafeScore(value) {
+  const score = Number(value);
+
+  if (!Number.isFinite(score)) {
+    return null;
+  }
+
+  return Math.min(100, Math.max(0, score));
+}
+
 export default function AllocationExplanation({ breakdown = {} }) {
-  const entries = Object.entries(breakdown).filter(([key]) => FACTOR_LABELS[key]);
+  const entries = Object.entries(breakdown || {}).filter(
+    ([key]) => FACTOR_LABELS[key]
+  );
 
   if (entries.length === 0) {
-    return <p className="text-xs text-gray-400">No breakdown available.</p>;
+    return (
+      <div className="rounded-lg border border-line bg-surface/40 p-3">
+        <p className="text-xs text-steel-light">
+          No score breakdown available for this recommendation.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-gray-500">Score breakdown</p>
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2">
-          <span className="w-40 shrink-0 text-xs text-gray-600">{FACTOR_LABELS[key]}</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
-            <div
-              className="h-full rounded-full bg-blue-500"
-              style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-            />
-          </div>
-          <span className="w-8 shrink-0 text-right text-xs font-medium text-gray-700">
-            {Math.round(value)}
-          </span>
-        </div>
-      ))}
+    <div className="rounded-lg border border-line bg-surface/40 p-4">
+      <div className="mb-3">
+        <p className="font-display text-sm font-semibold text-ink">
+          Why this equipment ranked here
+        </p>
+        <p className="mt-1 text-xs text-steel">
+          Each factor is scored from 0–100 by the allocation engine.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {entries.map(([key, value]) => {
+          const score = getSafeScore(value);
+
+          return (
+            <div key={key}>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <span className="text-xs text-steel">
+                  {FACTOR_LABELS[key]}
+                </span>
+
+                <span className="font-mono text-xs font-semibold text-ink">
+                  {score === null ? "—" : Math.round(score)}
+                </span>
+              </div>
+
+              <div
+                className="h-1.5 w-full overflow-hidden bg-line"
+                role="progressbar"
+                aria-label={`${FACTOR_LABELS[key]} score`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={score ?? 0}
+              >
+                {score !== null && (
+                  <div
+                    className="h-full bg-signal transition-all"
+                    style={{ width: `${score}%` }}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

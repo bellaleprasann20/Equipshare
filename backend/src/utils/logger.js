@@ -1,25 +1,51 @@
 /**
- * Minimal logger — wraps console.log/error with timestamps and
- * levels. Not a full library (Winston/Pino) since that's overkill
- * for an MCA project scope, but centralizing it here means it's
- * a one-line swap later if needed.
+ * Minimal application logger.
+ *
+ * Keeps logging centralized without adding Winston/Pino.
+ * Easy to replace with a proper logging library later.
  */
+
 function timestamp() {
   return new Date().toISOString();
 }
 
+function formatMeta(meta) {
+  if (!meta || typeof meta !== "object" || Object.keys(meta).length === 0) {
+    return "";
+  }
+
+  return meta;
+}
+
 export const logger = {
   info(message, meta = {}) {
-    console.log(`[${timestamp()}] [INFO] ${message}`, Object.keys(meta).length ? meta : "");
+    console.log(
+      `[${timestamp()}] [INFO] ${message}`,
+      formatMeta(meta)
+    );
   },
+
   warn(message, meta = {}) {
-    console.warn(`[${timestamp()}] [WARN] ${message}`, Object.keys(meta).length ? meta : "");
+    console.warn(
+      `[${timestamp()}] [WARN] ${message}`,
+      formatMeta(meta)
+    );
   },
+
   error(message, meta = {}) {
-    console.error(`[${timestamp()}] [ERROR] ${message}`, Object.keys(meta).length ? meta : "");
+    console.error(
+      `[${timestamp()}] [ERROR] ${message}`,
+      formatMeta(meta)
+    );
   },
-  // Used by server.js to log each incoming request in dev mode
+
+  /**
+   * Request logger.
+   * Used by server.js in development.
+   */
   request(req) {
-    console.log(`[${timestamp()}] ${req.method} ${req.originalUrl}`);
+    console.log(
+      `[${timestamp()}] ${req.method} ${req.originalUrl}`
+    );
   },
 };

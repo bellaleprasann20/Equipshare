@@ -1,140 +1,282 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { rentPerDay, lineTotal, formatINR } from "../../utils/pricing";
 import Button from "../../components/common/Button";
 import EquipmentImage from "../../components/equipment/EquipmentImage";
+import { lineTotal, formatINR } from "../../utils/pricing";
 
-export default function AllocationDraft() {
+function getEquipmentId(item) {
+  return item?.equipmentId || item?._id || item?.id;
+}
+
+function getDays(item) {
+  const days = Number(item?.days);
+  return Number.isFinite(days) && days > 0 ? days : 1;
+}
+
+function getItemTotal(item) {
+  try {
+    const value = Number(lineTotal(item));
+    return Number.isFinite(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export default function Cart() {
   const navigate = useNavigate();
-  // Using your existing cart context as the "draft" staging area
-  const { items, total, removeItem, updateItem } = useCart();
+
+  const {
+    items = [],
+    total = 0,
+    removeItem,
+    updateItem,
+    clear,
+  } = useCart();
+
+  const safeTotal = Number(total);
+  const displayTotal = Number.isFinite(safeTotal) ? safeTotal : 0;
+
+  const handleDaysChange = (equipmentId, value) => {
+    const days = Math.max(
+      1,
+      Math.min(365, Number(value) || 1)
+    );
+
+    updateItem(equipmentId, { days });
+  };
 
   if (items.length === 0) {
     return (
-      <div className="panel mx-auto max-w-xl p-8 text-center bg-surface border border-line rounded-lg mt-10">
-        <h1 className="font-display text-3xl font-bold text-ink">No equipment selected</h1>
-        <p className="mt-2 text-steel">You haven't added any machinery to your allocation request yet.</p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Button onClick={() => navigate("/equipment")}>Browse Equipment Catalog</Button>
+      <div className="mx-auto w-full max-w-2xl py-16">
+        <div className="rounded-xl border border-[#2a2a2d] bg-[#1c1c1f] p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6]">
+            <span className="text-2xl">+</span>
+          </div>
+
+          <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b5cf6]">
+            Equipment Selection
+          </p>
+
+          <h1 className="mt-2 font-display text-2xl font-bold text-white">
+            Your cart is empty
+          </h1>
+
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-400">
+            Select equipment from the catalog to review your fleet
+            selection and estimated internal allocation cost.
+          </p>
+
+          <div className="mt-6">
+            <Button onClick={() => navigate("/equipment")}>
+              Browse Equipment
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
-      <h1 className="mb-6 font-display text-3xl font-bold text-ink">
-        Draft Allocation Request <span className="font-mono text-xl text-steel">({items.length} machines)</span>
-      </h1>
-
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-        {/* Left Side: Selected Equipment List */}
-        <div className="flex flex-col gap-5">
-          {items.map((item) => (
-            <div key={item.equipmentId} className="panel flex gap-4 p-5 bg-surface border border-line rounded-lg">
-              <EquipmentImage
-                src={item.imageUrl}
-                alt={item.name}
-                label={item.name.split(" ")[0]}
-                className="h-28 w-36 shrink-0 rounded object-cover"
-              />
-              <div className="flex-1 flex flex-col justify-between">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-display text-xl font-bold text-ink">{item.name}</h3>
-                    <p className="text-sm text-steel mt-1">Current Location: {item.location || "Central Yard"}</p>
-                    
-                    {/* Display the AI EEI Score if available, otherwise fallback */}
-                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                      <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-                      </span>
-                      AI Score (EEI): {item.eeiScore || "85"}/100
-                    </div>
-                  </div>
-                  
-                  {/* Internal accounting cost display */}
-                  <div className="text-right">
-                    <p className="text-xs text-steel uppercase tracking-wider mb-1">Internal Cost</p>
-                    <p className="font-mono text-xl font-bold text-ink">{formatINR(lineTotal(item))}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center justify-between border-t border-line pt-4">
-                  <label className="flex items-center gap-3 text-sm text-ink font-medium">
-                    Duration Required:
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="365"
-                        value={item.days || 1}
-                        onChange={(e) =>
-                          updateItem(item.equipmentId, {
-                            days: Math.max(1, Math.min(365, Number(e.target.value) || 1)),
-                          })
-                        }
-                        className="w-20 border border-line bg-paper px-3 py-1.5 font-mono text-sm text-ink focus:border-signal focus:outline-none rounded"
-                      />
-                      <span className="text-steel font-normal">days</span>
-                    </div>
-                  </label>
-
-                  <button
-                    onClick={() => removeItem(item.equipmentId)}
-                    className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                  >
-                    Remove from request
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Right Side: Submission Summary */}
+    <div className="mx-auto w-full max-w-6xl py-6 sm:py-8">
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-4 border-b border-[#2a2a2d] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="panel sticky top-24 p-6 bg-surface border border-line rounded-lg shadow-sm">
-            <h2 className="font-display text-xl font-bold text-ink border-b border-line pb-4">Request Summary</h2>
-            
-            <div className="mt-4 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-steel">Total Machines</span>
-                <span className="font-medium text-ink">{items.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-steel">Average EEI Score</span>
-                <span className="font-medium text-green-600">High Efficiency</span>
-              </div>
-            </div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b5cf6]">
+            Equipment Selection
+          </p>
 
-            <div className="mt-6 flex items-baseline justify-between border-t border-line pt-4">
-              <span className="text-sm font-medium text-ink">Est. Site Budget</span>
-              <span className="font-mono text-2xl font-bold text-ink">{formatINR(total)}</span>
-            </div>
-            
-            <p className="mt-2 text-xs text-steel leading-relaxed">
-              This amount will be allocated from your project budget for internal fleet utilization.
-            </p>
+          <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Selected Equipment
+          </h1>
 
-            <div className="mt-6">
-              {/* Keeping the route to /checkout so it doesn't break your app routing, 
-                  but visually acting as a submit button */}
-              <Button fullWidth size="lg" className="bg-signal text-white py-3" onClick={() => navigate("/checkout")}>
-                Submit to Admin
-              </Button>
-            </div>
-            
-            <button
-              onClick={() => navigate("/equipment")}
-              className="mt-4 w-full text-center text-sm font-medium text-steel hover:text-signal transition-colors"
-            >
-              Add more machinery
-            </button>
-          </div>
+          <p className="mt-2 text-sm text-gray-400">
+            Review the equipment selected for your project.
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={clear}
+          className="self-start text-sm font-medium text-gray-500 transition-colors hover:text-red-400 sm:self-auto"
+        >
+          Clear Selection
+        </button>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        {/* Equipment List */}
+        <section className="space-y-4">
+          {items.map((item) => {
+            const equipmentId = getEquipmentId(item);
+            const days = getDays(item);
+            const itemTotal = getItemTotal(item);
+
+            return (
+              <article
+                key={equipmentId}
+                className="rounded-xl border border-[#2a2a2d] bg-[#1c1c1f] p-4 transition-colors hover:border-[#3a3a40] sm:p-5"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  {/* Image */}
+                  <EquipmentImage
+                    src={item.imageUrl}
+                    alt={item.name || "Equipment"}
+                    label={item?.name?.split(" ")[0] || "Equipment"}
+                    className="h-40 w-full shrink-0 rounded-lg object-cover sm:h-28 sm:w-36"
+                  />
+
+                  {/* Details */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h2 className="font-display text-lg font-bold text-white">
+                          {item.name || "Unnamed Equipment"}
+                        </h2>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                          {item.category || item.type || "Equipment"}
+                        </p>
+
+                        {item.location && (
+                          <p className="mt-2 text-xs text-gray-400">
+                            Location:{" "}
+                            <span className="text-gray-300">
+                              {item.location}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="text-left sm:text-right">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                          Estimated Cost
+                        </p>
+
+                        <p className="mt-1 font-mono text-lg font-bold text-white">
+                          {formatINR(itemTotal)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#2a2a2d] pt-4">
+                      <div className="flex items-center gap-3">
+                        <label
+                          htmlFor={`days-${equipmentId}`}
+                          className="text-xs font-medium text-gray-400"
+                        >
+                          Required Duration
+                        </label>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            id={`days-${equipmentId}`}
+                            type="number"
+                            min="1"
+                            max="365"
+                            value={days}
+                            onChange={(event) =>
+                              handleDaysChange(
+                                equipmentId,
+                                event.target.value
+                              )
+                            }
+                            className="w-20 rounded-md border border-[#333338] bg-[#161618] px-3 py-1.5 text-center font-mono text-sm text-white outline-none transition-colors focus:border-[#8b5cf6]"
+                          />
+
+                          <span className="text-xs text-gray-500">
+                            days
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeItem(equipmentId)}
+                        className="text-xs font-medium text-gray-500 transition-colors hover:text-red-400"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        {/* Summary */}
+        <aside>
+          <div className="sticky top-24 rounded-xl border border-[#2a2a2d] bg-[#1c1c1f] p-5">
+            <div className="border-b border-[#2a2a2d] pb-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8b5cf6]">
+                Selection Summary
+              </p>
+
+              <h2 className="mt-1 font-display text-lg font-bold text-white">
+                Equipment Overview
+              </h2>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  Equipment
+                </span>
+
+                <span className="font-mono text-sm font-semibold text-white">
+                  {items.length}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  Maximum duration
+                </span>
+
+                <span className="font-mono text-sm font-semibold text-white">
+                  {Math.max(...items.map(getDays))} days
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5 border-t border-[#2a2a2d] pt-5">
+              <div className="flex items-end justify-between gap-4">
+                <span className="text-sm font-medium text-gray-400">
+                  Estimated Total
+                </span>
+
+                <span className="font-mono text-2xl font-bold text-white">
+                  {formatINR(displayTotal)}
+                </span>
+              </div>
+
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                This is an internal fleet cost estimate. Final allocation
+                depends on availability and project approval.
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <Button
+                fullWidth
+                size="lg"
+                onClick={() => navigate("/checkout")}
+              >
+                Continue
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/equipment")}
+                className="w-full rounded-md border border-[#333338] px-4 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:border-[#8b5cf6] hover:text-white"
+              >
+                Browse More Equipment
+              </button>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

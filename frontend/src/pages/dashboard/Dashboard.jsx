@@ -1,155 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import UtilizationChart from "../../components/analytics/UtilizationChart";
-import Loader from "../../components/common/Loader";
-import ErrorMessage from "../../components/common/ErrorMessage";
-import Button from "../../components/common/Button";
-import { useAnalytics } from "../../hooks/useAnalytics";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-
-const ICONS = {
-  catalog: (
-    <>
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-    </>
-  ),
-  request: (
-    <>
-      <rect x="3" y="3" width="18" height="18" />
-      <path d="M12 8v8M8 12h8" />
-    </>
-  ),
-  history: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </>
-  ),
-  analytics: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
-  table: (
-    <>
-      <rect x="3" y="4" width="18" height="16" />
-      <path d="M3 10h18M9 10v10" />
-    </>
-  ),
-  fleet: (
-    <>
-      <path d="M3 20h18" />
-      <path d="M6 20V9l6-5 6 5v11" />
-      <path d="M10 20v-5h4v5" />
-    </>
-  ),
-  add: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v8M8 12h8" />
-    </>
-  ),
-};
-
-function CardIcon({ name }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-8 w-8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="square"
-      aria-hidden="true"
-    >
-      {ICONS[name]}
-    </svg>
-  );
-}
-
-const CARDS = [
-  {
-    to: "/equipment",
-    icon: "catalog",
-    title: "Equipment catalog",
-    text: "Browse every machine in the fleet, ranked by efficiency score.",
-  },
-  {
-    to: "/allocation",
-    icon: "request",
-    title: "New requirement",
-    text: "Describe your project and get a ranked shortlist of machines.",
-  },
-  {
-    to: "/allocation/history",
-    icon: "history",
-    title: "Allocation history",
-    text: "See past requests and which machines were assigned to them.",
-  },
-  {
-    to: "/analytics",
-    icon: "analytics",
-    title: "Analytics",
-    text: "Review utilization trends and compare ranking methods.",
-  },
-  {
-    to: "/equipment/manage",
-    icon: "table",
-    title: "Table view",
-    text: "Sort and scan the whole fleet in one dense table.",
-  },
-  {
-    to: "/admin",
-    icon: "fleet",
-    title: "Fleet overview",
-    text: "Spot low-scoring machines and overdue maintenance.",
-    adminOnly: true,
-  },
-  {
-    to: "/equipment/add",
-    icon: "add",
-    title: "Add equipment",
-    text: "Register a new machine with its service and cost details.",
-    adminOnly: true,
-  },
-];
-
-function ActionCard({ card, onOpen }) {
-  return (
-    <button
-      onClick={onOpen}
-      className="panel group flex flex-col items-start gap-3 p-6 text-left transition-colors hover:border-ink/30"
-    >
-      <span className="text-ink group-hover:text-signal">
-        <CardIcon name={card.icon} />
-      </span>
-      <span className="font-display text-lg font-bold uppercase tracking-tight text-ink">
-        {card.title}
-      </span>
-      <span className="text-sm text-steel">{card.text}</span>
-    </button>
-  );
-}
-
-function StatCard({ label, value, hint }) {
-  return (
-    <div className="panel p-5">
-      <p className="text-sm text-steel">{label}</p>
-      <p className="mt-2 font-mono text-4xl font-semibold text-ink">{value}</p>
-      {hint && <p className="mt-2 text-xs text-steel-light">{hint}</p>}
-    </div>
-  );
-}
-
-function eeiHint(score) {
-  if (score === null || score === undefined) return "No equipment scored yet";
-  if (score >= 80) return "Fleet is in excellent shape";
-  if (score >= 60) return "Fleet is in good shape";
-  if (score >= 40) return "Fleet needs attention";
-  return "Fleet is underperforming";
-}
+import { useAnalytics } from "../../hooks/useAnalytics";
+import ErrorMessage from "../../components/common/ErrorMessage";
+import Loader from "../../components/common/Loader";
+import {
+  Activity,
+  AlertCircle,
+  BarChart3,
+  Clock3,
+  Gauge,
+  Package,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { getDashboardSummary } = useAnalytics();
 
@@ -158,116 +23,375 @@ export default function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getDashboardSummary()
-      .then(setSummary)
-      .catch((err) =>
-        setError(err?.response?.data?.message || "Failed to load dashboard.")
-      )
-      .finally(() => setLoading(false));
+    let mounted = true;
+
+    async function loadDashboard() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await getDashboardSummary();
+
+        if (!mounted) return;
+
+        setSummary(response || {});
+      } catch (err) {
+        if (!mounted) return;
+
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Unable to load dashboard data."
+        );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadDashboard();
+
+    return () => {
+      mounted = false;
+    };
   }, [getDashboardSummary]);
 
-  if (loading) return <Loader label="Loading dashboard..." />;
-  if (error) return <ErrorMessage message={error} />;
+  const activeAllocations = Number(summary?.activeAllocations || 0);
+  const pendingRequests = Number(summary?.pendingRequests || 0);
+  const avgEEI = Number(summary?.avgEEI || 0);
 
-  const isAdmin = user?.role === "admin";
-  const cards = CARDS.filter((c) => !c.adminOnly || isAdmin);
-  const hasActivity = summary?.recentActivity?.length > 0;
+  const utilizationData = useMemo(() => {
+    const data = Array.isArray(summary?.utilizationByEquipment)
+      ? summary.utilizationByEquipment
+      : [];
+
+    return data
+      .map((item) => {
+        const operating = Number(item?.operatingHours || 0);
+        const idle = Number(item?.idleHours || 0);
+
+        const utilization =
+          item?.utilization !== undefined
+            ? Number(item.utilization)
+            : operating + idle > 0
+            ? (operating / (operating + idle)) * 100
+            : 0;
+
+        return {
+          id: item?._id || item?.equipmentId || item?.id,
+          name: item?.name || "Equipment",
+          utilization: Math.max(0, Math.min(100, utilization)),
+        };
+      })
+      .filter((item) => item.name)
+      .slice(0, 8);
+  }, [summary]);
+
+  const recentActivity = Array.isArray(summary?.recentActivity)
+    ? summary.recentActivity
+    : [];
+
+  const displayName =
+    user?.name?.trim() ||
+    user?.email?.split("@")[0] ||
+    "Manager";
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center bg-[#161618]">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-10">
-      {/* Header */}
-     <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl font-bold text-ink">
-            {isAdmin ? "Your fleet" : "Your project workspace"}
-          </h1>
-          <p className="mt-1 text-steel">
-            Welcome back{user?.name ? `, ${user.name}` : ""}. 
-            {isAdmin 
-              ? " Here is how the overall fleet is performing." 
-              : " Here is the status of your requested equipment."}
+    <div className="min-h-screen bg-[#161618] text-white">
+      <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        {/* =====================================================
+            HEADER
+        ====================================================== */}
+        <section className="border-b border-[#2a2a2d] pb-7">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a78bfa]">
+            Project Manager Workspace
           </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" size="lg" onClick={() => navigate("/allocation/history")}>
-            Allocation history
-          </Button>
-          <Button size="lg" onClick={() => navigate("/allocation")}>
-            Request equipment
-          </Button>
-        </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid gap-5 sm:grid-cols-3">
-        <StatCard
-          label="Active allocations"
-          value={summary?.activeAllocations ?? 0}
-          hint="Machines currently assigned to your projects"
-        />
-        <StatCard
-          label="Pending requests"
-          value={summary?.pendingRequests ?? 0}
-          hint="Requests waiting for you to pick a machine"
-        />
-        <StatCard
-          label="Average fleet EEI"
-          value={summary?.avgEEI ?? "N/A"}
-          hint={eeiHint(summary?.avgEEI)}
-        />
-      </div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Welcome back, {displayName}
+          </h1>
 
-      {/* Action cards */}
-      <section>
-        <h2 className="mb-5 font-display text-2xl font-bold text-ink">Manage your work</h2>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => (
-            <ActionCard key={card.to} card={card} onOpen={() => navigate(card.to)} />
-          ))}
-        </div>
-      </section>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
+            Monitor your equipment allocations, project activity, and fleet
+            performance from one workspace.
+          </p>
+        </section>
 
-      <hr className="border-line" />
+        {error && (
+          <div className="mt-6">
+            <ErrorMessage message={error} />
+          </div>
+        )}
 
-      {/* Fleet health */}
-      <section className="flex flex-col gap-6">
-        <h2 className="font-display text-2xl font-bold text-ink">Fleet health</h2>
+        {/* =====================================================
+            WORKSPACE OVERVIEW
+        ====================================================== */}
+        <section className="mt-7">
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-white">
+              Workspace overview
+            </h2>
 
-        <UtilizationChart
-          data={summary?.utilizationByEquipment || []}
-          title="Equipment utilization, last 30 days"
-        />
+            <p className="mt-1 text-xs text-zinc-500">
+              Current status from your equipment and allocation activity.
+            </p>
+          </div>
 
-        <div className="panel p-5">
-          <h3 className="mb-4 font-display text-base font-semibold text-ink">
-            Recent activity
-          </h3>
-          {hasActivity ? (
-            <ul className="divide-y divide-line">
-              {summary.recentActivity.map((item) => (
-                <li
-                  key={item._id}
-                  className="flex items-center justify-between gap-4 py-3 text-sm"
-                >
-                  <span className="text-ink">{item.message}</span>
-                  <span className="shrink-0 font-mono text-xs text-steel">
-                    {new Date(item.createdAt).toLocaleDateString("en-IN")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-steel">
-                No requests yet. Submit a requirement and it will show up here.
-              </p>
-              <Button variant="outline" size="sm" onClick={() => navigate("/allocation")}>
-                Submit a requirement
-              </Button>
+          <div className="grid gap-4 md:grid-cols-3">
+            <OverviewCard
+              label="Active Allocations"
+              value={activeAllocations}
+              description="Machines currently assigned to your projects."
+              icon={Package}
+              iconClass="bg-[#8b5cf6]/10 text-[#a78bfa]"
+            />
+
+            <OverviewCard
+              label="Pending Allocations"
+              value={pendingRequests}
+              description="Allocation requests currently awaiting action."
+              icon={Clock3}
+              iconClass="bg-amber-500/10 text-amber-400"
+            />
+
+            <OverviewCard
+              label="Average Fleet EEI"
+              value={avgEEI}
+              suffix="/100"
+              description={getEEIDescription(avgEEI)}
+              icon={Gauge}
+              iconClass="bg-blue-500/10 text-blue-400"
+            />
+          </div>
+        </section>
+
+        {/* =====================================================
+            UTILIZATION
+        ====================================================== */}
+        <section className="mt-8">
+          <div className="mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a78bfa]">
+              Performance
+            </p>
+
+            <h2 className="mt-2 text-xl font-bold text-white">
+              Equipment utilization
+            </h2>
+
+            <p className="mt-1 text-sm text-zinc-500">
+              Utilization performance for equipment associated with your
+              workspace.
+            </p>
+          </div>
+
+          <div className="border border-[#2a2a2d] bg-[#1c1c1f] p-5 sm:p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-[#a78bfa]" />
+
+                  <h3 className="text-sm font-semibold text-white">
+                    Fleet utilization
+                  </h3>
+                </div>
+
+                <p className="mt-1 text-xs text-zinc-600">
+                  Operating hours compared with available idle hours.
+                </p>
+              </div>
+
+              <span className="text-[10px] text-zinc-600">0–100%</span>
             </div>
-          )}
-        </div>
-      </section>
+
+            {utilizationData.length === 0 ? (
+              <EmptyState
+                icon={BarChart3}
+                title="No utilization data"
+                description="Equipment utilization data will appear here once fleet activity is available."
+              />
+            ) : (
+              <div className="space-y-4">
+                {utilizationData.map((item) => (
+                  <div key={item.id || item.name}>
+                    <div className="mb-2 flex items-center justify-between gap-4">
+                      <span className="truncate text-xs text-zinc-400">
+                        {item.name}
+                      </span>
+
+                      <span className="shrink-0 text-xs font-semibold text-white">
+                        {Math.round(item.utilization)}%
+                      </span>
+                    </div>
+
+                    <div className="h-2 overflow-hidden bg-[#29292d]">
+                      <div
+                        className="h-full bg-[#7c3aed] transition-all"
+                        style={{
+                          width: `${item.utilization}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* =====================================================
+            RECENT ACTIVITY
+        ====================================================== */}
+        <section className="mt-8 border-t border-[#2a2a2d] pt-8">
+          <div className="mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a78bfa]">
+              Activity
+            </p>
+
+            <h2 className="mt-2 text-xl font-bold text-white">
+              Recent activity
+            </h2>
+
+            <p className="mt-1 text-sm text-zinc-500">
+              Recent allocation and order activity associated with your
+              workspace.
+            </p>
+          </div>
+
+          <div className="border border-[#2a2a2d] bg-[#1c1c1f]">
+            {recentActivity.length === 0 ? (
+              <div className="px-6 py-10">
+                <EmptyState
+                  icon={Activity}
+                  title="No recent activity"
+                  description="Your allocation and order activity will appear here after you start using the fleet."
+                />
+              </div>
+            ) : (
+              <div className="divide-y divide-[#2a2a2d]">
+                {recentActivity.map((activity, index) => (
+                  <ActivityRow
+                    key={activity?._id || index}
+                    activity={activity}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
+}
+
+/* =============================================================
+   OVERVIEW CARD
+============================================================= */
+
+function OverviewCard({
+  label,
+  value,
+  suffix = "",
+  description,
+  icon: Icon,
+  iconClass,
+}) {
+  return (
+    <div className="border border-[#2a2a2d] bg-[#1c1c1f] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+            {label}
+          </p>
+
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-white">{value}</span>
+
+            {suffix && (
+              <span className="text-sm text-zinc-500">{suffix}</span>
+            )}
+          </div>
+
+          <p className="mt-2 text-xs leading-5 text-zinc-600">
+            {description}
+          </p>
+        </div>
+
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center ${iconClass}`}
+        >
+          <Icon className="h-4 w-4" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================
+   ACTIVITY ROW
+============================================================= */
+
+function ActivityRow({ activity }) {
+  const date = activity?.createdAt
+    ? new Date(activity.createdAt).toLocaleString()
+    : "";
+
+  return (
+    <div className="flex items-start gap-4 px-5 py-4">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center bg-[#8b5cf6]/10">
+        <Activity className="h-4 w-4 text-[#a78bfa]" />
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-sm text-zinc-300">
+          {activity?.message || "Workspace activity recorded."}
+        </p>
+
+        {date && (
+          <p className="mt-1 text-xs text-zinc-600">{date}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================
+   EMPTY STATE
+============================================================= */
+
+function EmptyState({ icon: Icon, title, description }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <div className="flex h-12 w-12 items-center justify-center bg-[#8b5cf6]/10">
+        <Icon className="h-5 w-5 text-[#a78bfa]" />
+      </div>
+
+      <h3 className="mt-4 text-sm font-semibold text-zinc-300">
+        {title}
+      </h3>
+
+      <p className="mt-2 max-w-md text-xs leading-5 text-zinc-600">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+/* =============================================================
+   EEI DESCRIPTION
+============================================================= */
+
+function getEEIDescription(score) {
+  if (score >= 80) return "Fleet performance is excellent.";
+  if (score >= 65) return "Fleet performance is good.";
+  if (score >= 50) return "Fleet performance is moderate.";
+  return "Fleet performance needs attention.";
 }

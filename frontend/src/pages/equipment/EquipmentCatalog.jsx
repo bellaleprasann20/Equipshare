@@ -42,7 +42,7 @@ const FAQS = [
 ];
 
 function EquipmentTile({ item, cartMode, onOpen, onAdd }) {
-  const status = item.availability || "available"; // fallback for testing
+ const status = item.availability; // fallback for testing
   const available = status === "available";
   const inCart = cartMode === "rent"; // Simplified since we removed buy mode
 
@@ -69,7 +69,10 @@ function EquipmentTile({ item, cartMode, onOpen, onAdd }) {
         </div>
         <div className="flex flex-col gap-1 px-4 pt-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-steel">
-            Site: {item.location || "Central Hub"}
+           Site:{" "}
+{item.location ||
+  item.currentLocation?.siteName ||
+  "Location unavailable"}
           </p>
           <h3 className="font-display text-lg font-bold text-ink group-hover:text-signal transition-colors line-clamp-1">
             {item.name}
@@ -80,7 +83,10 @@ function EquipmentTile({ item, cartMode, onOpen, onAdd }) {
       <div className="mt-auto flex items-end justify-between gap-3 p-4 border-t border-line mt-4">
         <div className="flex flex-col gap-1.5">
           <p className="text-[10px] uppercase font-bold tracking-wider text-steel">AI Efficiency Score</p>
-          <EEIBadge score={item.eeiScore || 75} showLabel={false} />
+          <EEIBadge
+  score={item.eeiScore}
+  showLabel={false}
+/>
         </div>
         <Button size="sm" variant={inCart ? "outline" : "primary"} disabled={!available} onClick={onAdd}>
           {label}

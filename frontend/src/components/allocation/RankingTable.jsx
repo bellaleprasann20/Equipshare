@@ -2,20 +2,40 @@ import React from "react";
 import EEIBadge from "../equipment/EEIBadge";
 import EmptyState from "../common/EmptyState";
 
-/**
- * Dense table view of the full ranked candidate list — an
- * alternative to the RecommendationCard list, useful when an
- * admin wants to scan many candidates at once rather than
- * scroll through cards.
- *
- * Expected shape of `results`: array of the same shape used
- * by RecommendationCard (see that file's header comment).
- *
- * Usage:
- *   <RankingTable results={results} onSelect={handleAllocate} />
- */
+function getEquipmentType(equipment) {
+  return equipment?.type || equipment?.category || "—";
+}
+
+function getEquipmentLocation(equipment) {
+  return (
+    equipment?.location ||
+    equipment?.currentLocation?.siteName ||
+    "—"
+  );
+}
+
+function formatNumber(value, digits = 1) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "—";
+  }
+
+  return number.toFixed(digits);
+}
+
+function formatCurrency(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "—";
+  }
+
+  return `₹${number.toLocaleString("en-IN")}`;
+}
+
 export default function RankingTable({ results = [], onSelect }) {
-  if (results.length === 0) {
+  if (!Array.isArray(results) || results.length === 0) {
     return (
       <EmptyState
         title="No recommendations yet"
@@ -25,48 +45,125 @@ export default function RankingTable({ results = [], onSelect }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto border border-line bg-surface">
+      <table className="min-w-full text-sm">
+        <thead className="border-b border-line bg-paper">
           <tr>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Rank</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Equipment</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Location</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">EEI</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Distance</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Transfer Cost</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600">Score</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-600"></th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Rank
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Equipment
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Location
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              EEI
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Distance
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Transfer Cost
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel">
+              Score
+            </th>
+
+            {onSelect && (
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-steel">
+                Action
+              </th>
+            )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
-          {results.map((r) => (
-            <tr key={r.equipment._id} className={r.rank === 1 ? "bg-blue-50/50" : ""}>
-              <td className="px-4 py-2 font-semibold text-gray-700">#{r.rank}</td>
-              <td className="px-4 py-2">
-                <div className="font-medium text-gray-900">{r.equipment.name}</div>
-                <div className="text-xs text-gray-400">{r.equipment.type}</div>
-              </td>
-              <td className="px-4 py-2 text-gray-600">{r.equipment.location}</td>
-              <td className="px-4 py-2">
-                <EEIBadge score={r.equipment.eeiScore} showLabel={false} />
-              </td>
-              <td className="px-4 py-2 text-gray-600">{r.transferDistanceKm} km</td>
-              <td className="px-4 py-2 text-gray-600">
-                ₹{r.transferCost.toLocaleString("en-IN")}
-              </td>
-              <td className="px-4 py-2 font-semibold text-gray-900">
-                {r.allocationScore.toFixed(1)}
-              </td>
-             <td className="px-4 py-2">
-  {onSelect && (
-    <button onClick={() => onSelect(r)} className="text-xs font-medium text-signal hover:underline">
-      Allocate
-    </button>
-  )}
-</td>
-            </tr>
-          ))}
+
+        <tbody className="divide-y divide-line">
+          {results.map((result, index) => {
+            const equipment = result?.equipment || {};
+            const rank = result?.rank ?? index + 1;
+
+            const isTopPick = rank === 1;
+
+            return (
+              <tr
+                key={equipment._id || `recommendation-${index}`}
+                className={
+                  isTopPick
+                    ? "bg-signal/5"
+                    : "transition-colors hover:bg-paper/50"
+                }
+              >
+                <td className="px-4 py-3">
+                  <span
+                    className={[
+                      "inline-flex h-7 w-7 items-center justify-center",
+                      "font-mono text-xs font-bold",
+                      isTopPick
+                        ? "bg-signal text-white"
+                        : "bg-paper text-steel",
+                    ].join(" ")}
+                  >
+                    {rank}
+                  </span>
+                </td>
+
+                <td className="px-4 py-3">
+                  <div className="font-display text-sm font-semibold text-ink">
+                    {equipment.name || "Unnamed equipment"}
+                  </div>
+
+                  <div className="mt-0.5 text-xs text-steel">
+                    {getEquipmentType(equipment)}
+                  </div>
+                </td>
+
+                <td className="px-4 py-3 text-xs text-steel">
+                  {getEquipmentLocation(equipment)}
+                </td>
+
+                <td className="px-4 py-3">
+                  <EEIBadge
+                    score={equipment.eeiScore}
+                    showLabel={false}
+                  />
+                </td>
+
+                <td className="px-4 py-3 font-mono text-xs text-steel">
+                  {formatNumber(result?.transferDistanceKm)} km
+                </td>
+
+                <td className="px-4 py-3 font-mono text-xs text-steel">
+                  {formatCurrency(result?.transferCost)}
+                </td>
+
+                <td className="px-4 py-3">
+                  <span className="font-mono text-sm font-semibold text-ink">
+                    {formatNumber(result?.allocationScore)}
+                  </span>
+                </td>
+
+                {onSelect && (
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(result)}
+                      className="border border-signal px-3 py-1.5 text-xs font-semibold text-signal transition-colors hover:bg-signal hover:text-white"
+                    >
+                      Allocate
+                    </button>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

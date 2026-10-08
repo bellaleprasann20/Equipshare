@@ -1,38 +1,127 @@
 import mongoose from "mongoose";
 
-/**
- * Maintenance/service log entries per equipment. Feeds two
- * things: the MaintenanceStatus.jsx display (via Equipment's
- * lastServiceDate, kept in sync — see the pre-save hook below),
- * and the maintenance history table on the equipment detail
- * page.
- */
 const maintenanceSchema = new mongoose.Schema(
   {
     equipmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Equipment",
       required: true,
+      index: true,
     },
-    serviceDate: { type: Date, required: true, default: Date.now },
+
+    serviceDate: {
+      type: Date,
+      required: true,
+      default: Date.now,
+      index: true,
+    },
+
     type: {
       type: String,
-      enum: ["routine", "repair", "breakdown_repair", "inspection"],
+      enum: [
+        "routine",
+        "repair",
+        "breakdown_repair",
+        "inspection",
+      ],
       default: "routine",
     },
-    description: { type: String },
-    cost: { type: Number, default: 0 },
-    performedBy: { type: String }, // technician/vendor name
+
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+
+    cost: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    performedBy: {
+      type: String,
+      trim: true,
+      maxlength: 150,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// Keep Equipment.lastServiceDate in sync whenever a new
-// maintenance record is logged, so eeiCalculator.js always
-// reads the latest date without a separate manual update step.
-maintenanceSchema.post("save", async function (doc) {
-  const Equipment = mongoose.model("Equipment");
-  await Equipment.findByIdAndUpdate(doc.equipmentId, { lastServiceDate: doc.serviceDate });
+/**
+ * After creating a maintenance record,
+ * synchronize Equipment.lastServiceDate
+ * with the latest maintenance record.
+ */
+maintenanceSchema.post("save", async function () {
+  try {
+    const Equipment = mongoose.model("Equipment");
+
+    const latestMaintenance = await mongoose
+      .model("Maintenance")
+      .findOne({
+        equipmentId: this.equipmentId,
+      })
+      .sort({ serviceDate: -1 })
+      .select("serviceDate")
+      .lean();
+
+    if (latestMaintenance) {
+      await Equipment.findByIdAndUpdate(
+        this.equipmentId,
+        {
+          lastServiceDate: latestMaintenance.serviceDate,
+        }
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Failed to synchronize equipment service date:",
+      error
+    );
+  }
 });
 
-export default mongoose.model("Maintenance", maintenanceSchema);
+/**
+ * Also synchronize when a maintenance record is deleted
+ * using findOneAndDelete().
+ */
+maintenanceSchema.post(
+  "findOneAndDelete",
+  async function (deletedDoc) {
+    if (!deletedDoc) return;
+
+    try {
+      const Equipment = mongoose.model("Equipment");
+
+      const latestMaintenance = await mongoose
+        .model("Maintenance")
+        .findOne({
+          equipmentId: deletedDoc.equipmentId,
+        })
+        .sort({ serviceDate: -1 })
+        .select("serviceDate")
+        .lean();
+
+      await Equipment.findByIdAndUpdate(
+        deletedDoc.equipmentId,
+        {
+          lastServiceDate:
+            latestMaintenance?.serviceDate || null,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Failed to synchronize service date after deletion:",
+        error
+      );
+    }
+  }
+);
+
+export default mongoose.model(
+  "Maintenance",
+  maintenanceSchema
+);

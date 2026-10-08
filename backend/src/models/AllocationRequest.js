@@ -1,41 +1,198 @@
 import mongoose from "mongoose";
 
-const allocationRequestSchema = new mongoose.Schema(
+const rankedResultSchema = new mongoose.Schema(
   {
-    projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
-    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    equipmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Equipment",
+      required: true,
+    },
 
-    equipmentType: { type: String, required: true },
-    projectLocation: { type: String, required: true },
-    projectCoordinates: { lat: { type: Number }, lng: { type: Number } },
-    requiredFrom: { type: Date, required: true },
-    requiredTo: { type: Date, required: true },
-    maxTransferDistanceKm: { type: Number },
-    notes: { type: String },
+    rank: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
-    rankedResults: [
-      {
-        equipmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Equipment" },
-        rank: Number,
-        allocationScore: Number,
-        transferDistanceKm: Number,
-        transferCost: Number,
-        scoreBreakdown: { eei: Number, distance: Number, cost: Number, durationFit: Number },
+    allocationScore: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    transferDistanceKm: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    transferCost: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    scoreBreakdown: {
+      eei: {
+        type: Number,
+        min: 0,
       },
-    ],
 
-    allocatedEquipmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Equipment" },
-    allocationScore: { type: Number },
+      distance: {
+        type: Number,
+        min: 0,
+      },
 
-    // pending: awaiting admin review. active: admin approved, equipment reserved.
-    // rejected: admin declined. completed/cancelled: later lifecycle states.
-    status: {
-      type: String,
-      enum: ["pending", "active", "completed", "cancelled", "rejected"],
-      default: "pending",
+      cost: {
+        type: Number,
+        min: 0,
+      },
+
+      durationFit: {
+        type: Number,
+        min: 0,
+      },
     },
   },
-  { timestamps: true }
+  { _id: false }
 );
 
-export default mongoose.model("AllocationRequest", allocationRequestSchema);
+const allocationRequestSchema = new mongoose.Schema(
+  {
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+      index: true,
+    },
+
+    requestedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
+    equipmentType: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      maxlength: 50,
+    },
+
+    projectLocation: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+
+    projectCoordinates: {
+      lat: {
+        type: Number,
+        min: -90,
+        max: 90,
+      },
+
+      lng: {
+        type: Number,
+        min: -180,
+        max: 180,
+      },
+    },
+
+    requiredFrom: {
+      type: Date,
+      required: true,
+    },
+
+    requiredTo: {
+      type: Date,
+      required: true,
+    },
+
+    maxTransferDistanceKm: {
+      type: Number,
+      min: 0,
+      max: 10000,
+    },
+
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+
+    rankedResults: {
+      type: [rankedResultSchema],
+      default: [],
+    },
+
+    allocatedEquipmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Equipment",
+    },
+
+    allocationScore: {
+      type: Number,
+      min: 0,
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "active",
+        "completed",
+        "cancelled",
+        "rejected",
+      ],
+      default: "pending",
+      index: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/*
+ * Prevent multiple active allocation requirements
+ * for the same project.
+ *
+ * A project can have:
+ *   pending  -> one request
+ *   active   -> one request
+ *
+ * Once completed/cancelled/rejected, a new requirement
+ * can be created for the project.
+ */
+allocationRequestSchema.index(
+  { projectId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      status: {
+        $in: ["pending", "active"],
+      },
+    },
+  }
+);
+
+allocationRequestSchema.pre("validate", function (next) {
+  if (this.requiredFrom && this.requiredTo) {
+    if (this.requiredTo < this.requiredFrom) {
+      return next(
+        new Error("Required end date must be after the start date.")
+      );
+    }
+  }
+
+  next();
+});
+
+export default mongoose.model(
+  "AllocationRequest",
+  allocationRequestSchema
+);
