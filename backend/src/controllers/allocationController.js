@@ -1,3 +1,4 @@
+import Project from "../models/Project.js";
 import mongoose from "mongoose";
 import AllocationRequest from "../models/AllocationRequest.js";
 import Equipment from "../models/Equipment.js";
@@ -31,16 +32,19 @@ export async function requestAllocation(req, res) {
     }
 
     const {
+      projectId,
       equipmentType,
       projectLocation,
       projectCoordinates,
       requiredFrom,
       requiredTo,
       maxTransferDistanceKm,
+      minEeiScore,
       notes,
     } = req.body;
 
-    if (!equipmentType || !projectLocation || !requiredFrom || !requiredTo) {
+    if (!equipmentType || !projectLocation?.trim() ||
+        !requiredFrom || !requiredTo) {
       return res.status(400).json({
         message:
           "Equipment type, project location, start date and end date are required.",
@@ -79,36 +83,109 @@ export async function requestAllocation(req, res) {
       }
     }
 
+    const minimumEeiScore =
+      minEeiScore === undefined ||
+      minEeiScore === null ||
+      minEeiScore === ""
+        ? null
+        : Number(minEeiScore);
+
+    if (
+      minimumEeiScore !== null &&
+      (!Number.isFinite(minimumEeiScore) ||
+        minimumEeiScore < 0 ||
+        minimumEeiScore > 100)
+    ) {
+      return res.status(400).json({
+        message: "Minimum EEI score must be between 0 and 100.",
+      });
+    }
+
     if (notes && String(notes).length > 1000) {
       return res.status(400).json({
         message: "Notes cannot exceed 1000 characters.",
       });
     }
 
-    /*
-     * One active/pending allocation at a time for the same user.
-     *
-     * This prevents repeatedly submitting the same project request.
-     * True "one requirement per project" enforcement requires a
-     * projectId in AllocationRequest.
-     */
-    const existingRequest = await AllocationRequest.findOne({
-      requestedBy: userId,
-      status: { $in: ["pending", "active"] },
-    }).lean();
+    // Resolve the project and verify ownership.
+    let project;
+
+    if (projectId) {
+      if (!isValidObjectId(projectId)) {
+        return res.status(400).json({
+          message: "Invalid project ID.",
+        });
+      }
+
+      const projectFilter = { _id: projectId };
+
+      if (req.user?.role !== "admin") {
+        projectFilter.managerId = userId;
+      }
+
+      project = await Project.findOne(projectFilter);
+
+      if (!project) {
+        return res.status(404).json({
+          message: "Project not found or you do not have access to it.",
+        });
+      }
+
+      if (project.status !== "active") {
+        return res.status(400).json({
+          message: "Equipment can only be requested for active projects.",
+        });
+      }
+    } else {
+      // Compatibility with the existing location-based form:
+      // reuse an active project at this location, or create one.
+      const normalizedLocation = String(projectLocation).trim();
+
+      const projectFilter = {
+        location: normalizedLocation,
+        status: "active",
+      };
+
+      if (req.user?.role !== "admin") {
+        projectFilter.managerId = userId;
+      }
+
+      project = await Project.findOne(projectFilter);
+
+      if (!project) {
+        project = await Project.create({
+          name: `Project at ${normalizedLocation}`.slice(0, 150),
+          location: normalizedLocation,
+          coordinates: projectCoordinates,
+          managerId: userId,
+          status: "active",
+        });
+      }
+    }
+
+    const normalizedEquipmentType = String(equipmentType)
+  .trim()
+  .toLowerCase();
+
+const existingRequest = await AllocationRequest.findOne({
+  projectId: project._id,
+  equipmentType: normalizedEquipmentType,
+  status: { $in: ["pending", "active"] },
+}).lean();
 
     if (existingRequest) {
       return res.status(409).json({
-        message:
-          "You already have an active allocation request. Please wait for it to be reviewed before creating another one.",
+       message:
+  `This project already has a pending or active ${normalizedEquipmentType} request. Wait for it to be reviewed before creating another.`,
         requestId: existingRequest._id,
       });
     }
 
     const requirement = {
+      projectId: project._id,
       equipmentType: String(equipmentType).trim(),
-      projectLocation: String(projectLocation).trim(),
-      projectCoordinates,
+      projectLocation: project.location,
+      projectCoordinates: project.coordinates,
       requiredFrom: startDate,
       requiredTo: endDate,
       maxTransferDistanceKm:
@@ -117,6 +194,7 @@ export async function requestAllocation(req, res) {
         maxTransferDistanceKm === null
           ? null
           : Number(maxTransferDistanceKm),
+      minEeiScore: minimumEeiScore,
       notes: notes ? String(notes).trim() : "",
     };
 
@@ -125,11 +203,14 @@ export async function requestAllocation(req, res) {
     if (!Array.isArray(results) || results.length === 0) {
       return res.status(404).json({
         message:
-          "No suitable equipment was found for the submitted requirement.",
+          minimumEeiScore === null
+            ? "No suitable equipment was found for the submitted requirement."
+            : `No suitable equipment was found with an EEI score of at least ${minimumEeiScore}. Try lowering the minimum EEI score.`,
       });
     }
 
     const allocationRequest = await AllocationRequest.create({
+      projectId: project._id,
       requestedBy: userId,
       equipmentType: requirement.equipmentType,
       projectLocation: requirement.projectLocation,
@@ -158,6 +239,7 @@ export async function requestAllocation(req, res) {
 
     return res.status(500).json({
       message: "Failed to generate recommendations.",
+      error: err.message,
     });
   }
 }

@@ -63,7 +63,6 @@ const allocationRequestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
-      index: true,
     },
 
     requestedBy: {
@@ -158,8 +157,8 @@ const allocationRequestSchema = new mongoose.Schema(
 );
 
 /*
- * Prevent multiple active allocation requirements
- * for the same project.
+ * Prevent duplicate pending or active requests
+ * for the same project and equipment type.
  *
  * A project can have:
  *   pending  -> one request
@@ -169,7 +168,7 @@ const allocationRequestSchema = new mongoose.Schema(
  * can be created for the project.
  */
 allocationRequestSchema.index(
-  { projectId: 1 },
+  { projectId: 1, equipmentType: 1 },
   {
     unique: true,
     partialFilterExpression: {
@@ -196,3 +195,4 @@ export default mongoose.model(
   "AllocationRequest",
   allocationRequestSchema
 );
+

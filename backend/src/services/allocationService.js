@@ -1,3 +1,4 @@
+
 import Equipment from "../models/Equipment.js";
 import AllocationRequest from "../models/AllocationRequest.js";
 
@@ -12,20 +13,13 @@ import {
 } from "./distanceCostUtil.js";
 
 /**
- * Allocation Ranking Engine
- * =========================
+ * Smart Allocation Ranking Engine
  *
  * AllocationScore =
- *
- *   EEI                  × 0.40
- *   ProximityScore       × 0.25
- *   CostScore            × 0.20
- *   DurationFitScore     × 0.15
- *
- * Every component is normalized to 0-100.
- *
- * The result is intentionally interpretable so the frontend
- * can display the score breakdown to the user/admin.
+ *   EEI            * 0.40
+ *   Proximity      * 0.25
+ *   Cost           * 0.20
+ *   Duration Fit   * 0.15
  */
 
 const ALLOCATION_WEIGHTS = Object.freeze({
@@ -37,26 +31,17 @@ const ALLOCATION_WEIGHTS = Object.freeze({
 
 const FALLBACK_SAME_LOCATION_KM = 5;
 const FALLBACK_DIFFERENT_LOCATION_KM = 40;
-
 const MAX_REASONABLE_DISTANCE_KM = 200;
 
 /**
- * Return ranked equipment recommendations for a project requirement.
- *
- * @param {Object} requirement
- *
- * Required:
- * - projectId
- * - equipmentType
- * - projectLocation
- * - requiredFrom
- * - requiredTo
- *
- * Optional:
- * - projectCoordinates
- * - maxTransferDistanceKm
- *
- * @returns {Promise<Array>}
+ * Escape special regex characters.
+ */
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Return ranked equipment recommendations.
  */
 export async function getRankedRecommendations(requirement) {
   const {
@@ -66,6 +51,7 @@ export async function getRankedRecommendations(requirement) {
     requiredFrom,
     requiredTo,
     maxTransferDistanceKm,
+    minEeiScore,
   } = requirement;
 
   const normalizedType = String(equipmentType || "")
@@ -112,36 +98,54 @@ export async function getRankedRecommendations(requirement) {
     );
   }
 
-  /*
-   * Fetch currently available equipment.
-   *
-   * Equipment marked in_use or sold is immediately excluded.
-   */
+  const minimumEeiScore =
+    minEeiScore === undefined ||
+    minEeiScore === null ||
+    minEeiScore === ""
+      ? null
+      : Number(minEeiScore);
+
+  if (
+    minimumEeiScore !== null &&
+    (!Number.isFinite(minimumEeiScore) ||
+      minimumEeiScore < 0 ||
+      minimumEeiScore > 100)
+  ) {
+    throw new Error(
+      "Minimum EEI score must be between 0 and 100."
+    );
+  }
+
+  // ---------------------------------------------------------
+  // 1. Find matching available equipment.
+  // Case-insensitive and whitespace-tolerant matching.
+  // ---------------------------------------------------------
+
   const candidates = await Equipment.find({
-    type: normalizedType,
-    availability: "available",
-  })
-    .lean();
+    type: {
+      $regex: `^\\s*${escapeRegex(normalizedType)}\\s*$`,
+      $options: "i",
+    },
+    availability: {
+      $regex: "^\\s*available\\s*$",
+      $options: "i",
+    },
+  }).lean();
 
   if (candidates.length === 0) {
+    console.warn("SMART ALLOCATION: No available candidates", {
+      requestedType: normalizedType,
+      availableTypes: await Equipment.distinct("type"),
+      availabilityValues: await Equipment.distinct("availability"),
+    });
+
     return [];
   }
 
-  /*
-   * An equipment item's availability flag alone is not enough
-   * for future-date allocation.
-   *
-   * Example:
-   *
-   * Equipment A = available now
-   * Active allocation = Oct 10 → Oct 20
-   * New request = Oct 15 → Oct 18
-   *
-   * Equipment A must NOT be recommended.
-   *
-   * We therefore find active allocations overlapping the
-   * requested period.
-   */
+  // ---------------------------------------------------------
+  // 2. Exclude equipment with overlapping active allocations.
+  // ---------------------------------------------------------
+
   const candidateIds = candidates.map(
     (equipment) => equipment._id
   );
@@ -151,14 +155,6 @@ export async function getRankedRecommendations(requirement) {
     allocatedEquipmentId: {
       $in: candidateIds,
     },
-
-    /*
-     * Date overlap:
-     *
-     * existing.start <= requested.end
-     * AND
-     * existing.end >= requested.start
-     */
     requiredFrom: {
       $lte: to,
     },
@@ -166,9 +162,7 @@ export async function getRankedRecommendations(requirement) {
       $gte: from,
     },
   })
-    .select(
-      "allocatedEquipmentId requiredFrom requiredTo"
-    )
+    .select("allocatedEquipmentId requiredFrom requiredTo")
     .lean();
 
   const blockedEquipmentIds = new Set(
@@ -179,196 +173,163 @@ export async function getRankedRecommendations(requirement) {
       .filter(Boolean)
   );
 
-  /*
-   * Cost normalization requires the complete candidate fleet
-   * so each equipment item is evaluated against the same range.
-   */
-  const fleetCostRange =
-    computeFleetCostRange(candidates);
+  // ---------------------------------------------------------
+  // 3. Calculate common fleet cost normalization range.
+  // ---------------------------------------------------------
+
+  const fleetCostRange = computeFleetCostRange(candidates);
+
+  let blockedCount = 0;
+  let distanceExcludedCount = 0;
+  let eeiExcludedCount = 0;
+
+  // ---------------------------------------------------------
+  // 4. Calculate equipment scores.
+  // ---------------------------------------------------------
 
   const scored = candidates
     .map((equipment) => {
-      /*
-       * Exclude equipment already committed to an overlapping
-       * active allocation.
-       */
-      if (
-        blockedEquipmentIds.has(
-          equipment._id.toString()
-        )
-      ) {
+      const equipmentId = equipment._id.toString();
+
+      // Exclude already allocated equipment.
+      if (blockedEquipmentIds.has(equipmentId)) {
+        blockedCount++;
         return null;
       }
 
-      // ---------------------------------------------------------
-      // Distance
-      // ---------------------------------------------------------
-
+      // Calculate transfer distance.
       const distanceKm = resolveDistanceKm(
         equipment,
         projectLocation,
         projectCoordinates
       );
 
-      /*
-       * Important:
-       *
-       * 0 is a valid distance.
-       *
-       * Therefore we explicitly check !== null instead of
-       * using a truthy check.
-       */
+      // Apply optional distance limit.
       if (
         distanceLimit !== null &&
         distanceKm > distanceLimit
       ) {
+        distanceExcludedCount++;
         return null;
       }
 
+      // Calculate transfer cost.
       const transferCost = estimateTransferCost(
         distanceKm,
         normalizedType
       );
 
-      // ---------------------------------------------------------
-      // EEI
-      // ---------------------------------------------------------
-
+      // Calculate Equipment Efficiency Index.
       const {
         score: eeiScore,
         breakdown: eeiBreakdown,
-      } = calculateEEI(
-        equipment,
-        fleetCostRange
-      );
+      } = calculateEEI(equipment, fleetCostRange);
 
-      // ---------------------------------------------------------
-      // Allocation sub-scores
-      // ---------------------------------------------------------
+      // Apply optional minimum EEI filter.
+      if (
+        minimumEeiScore !== null &&
+        eeiScore < minimumEeiScore
+      ) {
+        eeiExcludedCount++;
+        return null;
+      }
+
+      // -------------------------------------------------------
+      // Allocation sub-scores.
+      // -------------------------------------------------------
 
       const proximityScore = clamp(
         100 -
-          (distanceKm /
-            MAX_REASONABLE_DISTANCE_KM) *
-            100,
+          (distanceKm / MAX_REASONABLE_DISTANCE_KM) * 100,
         0,
         100
       );
 
-      /*
-       * The allocation cost component reuses the EEI cost
-       * normalization so the model remains consistent.
-       */
       const costScore = clamp(
         Number(eeiBreakdown.cost) || 0,
         0,
         100
       );
 
-      /*
-       * Duration fit is now based on actual overlapping
-       * active allocations instead of simply checking
-       * availability.
-       */
-      const durationFitScore =
-        computeDurationFitScore(
-          equipment,
-          blockedEquipmentIds
-        );
+      const durationFitScore = computeDurationFitScore(
+        equipment,
+        blockedEquipmentIds
+      );
 
-      // ---------------------------------------------------------
-      // Final weighted score
-      // ---------------------------------------------------------
+      // -------------------------------------------------------
+      // Final weighted allocation score.
+      // -------------------------------------------------------
 
       const allocationScore =
         eeiScore * ALLOCATION_WEIGHTS.eei +
-        proximityScore *
-          ALLOCATION_WEIGHTS.proximity +
+        proximityScore * ALLOCATION_WEIGHTS.proximity +
         costScore * ALLOCATION_WEIGHTS.cost +
-        durationFitScore *
-          ALLOCATION_WEIGHTS.durationFit;
+        durationFitScore * ALLOCATION_WEIGHTS.durationFit;
 
       return {
         equipment: {
           ...equipment,
-
-          /*
-           * This is freshly calculated for the current ranking.
-           *
-           * We intentionally do not blindly trust the cached
-           * equipment.eeiScore because raw equipment metrics
-           * may have changed since the cache was generated.
-           */
           eeiScore,
           eeiBreakdown,
         },
 
-        allocationScore:
-          roundToOneDecimal(allocationScore),
+        allocationScore: roundToOneDecimal(allocationScore),
 
-        transferDistanceKm:
-          roundToOneDecimal(distanceKm),
+        transferDistanceKm: roundToOneDecimal(distanceKm),
 
         transferCost,
 
         scoreBreakdown: {
           eei: roundToOneDecimal(eeiScore),
-
-          distance:
-            roundToOneDecimal(proximityScore),
-
-          cost:
-            roundToOneDecimal(costScore),
-
-          durationFit:
-            roundToOneDecimal(durationFitScore),
+          distance: roundToOneDecimal(proximityScore),
+          cost: roundToOneDecimal(costScore),
+          durationFit: roundToOneDecimal(durationFitScore),
         },
       };
     })
-    .filter(Boolean)
-    .sort((a, b) => {
-      /*
-       * Primary:
-       * higher allocation score first.
-       *
-       * Secondary:
-       * lower transfer distance first.
-       *
-       * This gives deterministic ordering when two scores
-       * are equal.
-       */
-      if (
-        b.allocationScore !==
-        a.allocationScore
-      ) {
-        return (
-          b.allocationScore -
-          a.allocationScore
-        );
-      }
+    .filter(Boolean);
 
-      return (
-        a.transferDistanceKm -
-        b.transferDistanceKm
-      );
-    })
-    .map((result, index) => ({
-      rank: index + 1,
-      ...result,
-    }));
+  // ---------------------------------------------------------
+  // 5. Log exclusion details when no recommendation survives.
+  // ---------------------------------------------------------
 
-  return scored;
+  if (scored.length === 0) {
+    console.warn("SMART ALLOCATION: All candidates excluded", {
+      requestedType: normalizedType,
+      totalCandidates: candidates.length,
+      overlappingAllocations: blockedCount,
+      distanceExcluded: distanceExcludedCount,
+      minimumEeiExcluded: eeiExcludedCount,
+      distanceLimit,
+      minimumEeiScore,
+      requestedFrom: from,
+      requestedTo: to,
+    });
+  }
+
+  // ---------------------------------------------------------
+  // 6. Rank recommendations.
+  // ---------------------------------------------------------
+
+  scored.sort((a, b) => {
+    if (b.allocationScore !== a.allocationScore) {
+      return b.allocationScore - a.allocationScore;
+    }
+
+    return a.transferDistanceKm - b.transferDistanceKm;
+  });
+
+  return scored.map((result, index) => ({
+    rank: index + 1,
+    ...result,
+  }));
 }
 
 /**
- * Duration fit score.
+ * Calculate duration fit.
  *
- * The candidate list has already excluded equipment with
- * overlapping active allocations, so an available candidate
- * receives 100.
- *
- * Kept as a separate function because this is the natural
- * extension point for more sophisticated calendar scoring.
+ * Candidates with overlapping active allocations have
+ * already been excluded.
  */
 function computeDurationFitScore(
   equipment,
@@ -376,14 +337,15 @@ function computeDurationFitScore(
 ) {
   if (
     !equipment?._id ||
-    blockedEquipmentIds.has(
-      equipment._id.toString()
-    )
+    blockedEquipmentIds.has(equipment._id.toString())
   ) {
     return 0;
   }
 
-  if (equipment.availability !== "available") {
+  if (
+    String(equipment.availability || "").toLowerCase().trim() !==
+    "available"
+  ) {
     return 0;
   }
 
@@ -394,14 +356,9 @@ function computeDurationFitScore(
  * Resolve equipment-to-project distance.
  *
  * Priority:
- *
- * 1. GPS coordinates
- * 2. Same textual location → 5 km
- * 3. Different/unknown textual location → 40 km
- *
- * The fallback values are documented assumptions for the
- * current MVP and should be replaced with real routing data
- * when available.
+ * 1. Coordinates.
+ * 2. Same textual location.
+ * 3. Different textual location.
  */
 function resolveDistanceKm(
   equipment,
@@ -412,26 +369,27 @@ function resolveDistanceKm(
     projectCoordinates &&
     equipment.coordinates
   ) {
-    const distance =
-      calculateDistanceKm(
-        equipment.coordinates,
-        projectCoordinates
-      );
+    const distance = calculateDistanceKm(
+      equipment.coordinates,
+      projectCoordinates
+    );
 
     if (distance !== null) {
       return distance;
     }
   }
 
-  const equipmentLocation =
-    equipment.location
-      ?.trim()
-      .toLowerCase();
+  const equipmentLocation = String(
+    equipment.location || ""
+  )
+    .trim()
+    .toLowerCase();
 
-  const requestedLocation =
-    projectLocation
-      ?.trim()
-      .toLowerCase();
+  const requestedLocation = String(
+    projectLocation || ""
+  )
+    .trim()
+    .toLowerCase();
 
   const sameLocation =
     Boolean(equipmentLocation) &&
@@ -444,7 +402,7 @@ function resolveDistanceKm(
 }
 
 /**
- * Keep values inside a defined range.
+ * Keep scores within their valid range.
  */
 function clamp(value, min, max) {
   const numericValue = Number(value);

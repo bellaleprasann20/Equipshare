@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 
 import { env } from "./src/config/environment.js";
@@ -16,6 +16,7 @@ import equipmentRoutes from "./src/routes/equipmentRoutes.js";
 import allocationRoutes from "./src/routes/allocationRoutes.js";
 import analyticsRoutes from "./src/routes/analyticsRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
+import projectRoutes from "./src/routes/projectRoutes.js";
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use("/api/allocate", allocationRoutes);
 app.use("/api/orders", orderRoutes);
 
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/projects", projectRoutes);
 
 /* =========================================================
    ERROR HANDLING
@@ -135,3 +137,4 @@ async function start() {
 }
 
 start();
+

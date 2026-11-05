@@ -18,6 +18,7 @@ const initialState = {
   requiredFrom: "",
   requiredTo: "",
   maxTransferDistanceKm: "",
+  minEeiScore: "",
   notes: "",
 };
 
@@ -43,27 +44,20 @@ export default function RequirementForm({
   const validate = () => {
     const nextErrors = {};
 
-    const projectLocation =
-      form.projectLocation.trim();
-
     if (!form.equipmentType) {
-      nextErrors.equipmentType =
-        "Select an equipment type";
+      nextErrors.equipmentType = "Select an equipment type";
     }
 
-    if (!projectLocation) {
-      nextErrors.projectLocation =
-        "Enter the project location";
+    if (!form.projectLocation.trim()) {
+      nextErrors.projectLocation = "Enter the project location";
     }
 
     if (!form.requiredFrom) {
-      nextErrors.requiredFrom =
-        "Select a start date";
+      nextErrors.requiredFrom = "Select a start date";
     }
 
     if (!form.requiredTo) {
-      nextErrors.requiredTo =
-        "Select an end date";
+      nextErrors.requiredTo = "Select an end date";
     }
 
     if (
@@ -76,46 +70,54 @@ export default function RequirementForm({
     }
 
     if (form.maxTransferDistanceKm !== "") {
-      const distance = Number(
-        form.maxTransferDistanceKm
-      );
+      const distance = Number(form.maxTransferDistanceKm);
 
-      if (
-        !Number.isFinite(distance) ||
-        distance <= 0
-      ) {
+      if (!Number.isFinite(distance) || distance <= 0) {
         nextErrors.maxTransferDistanceKm =
           "Enter a valid distance greater than 0";
       }
     }
 
+    // Optional EEI filter: zero is a valid score.
+    if (form.minEeiScore !== "") {
+      const score = Number(form.minEeiScore);
+
+      if (
+        !Number.isFinite(score) ||
+        score < 0 ||
+        score > 100
+      ) {
+        nextErrors.minEeiScore =
+          "Enter an EEI score between 0 and 100";
+      }
+    }
+
     if (form.notes.length > 1000) {
-      nextErrors.notes =
-        "Notes cannot exceed 1000 characters";
+      nextErrors.notes = "Notes cannot exceed 1000 characters";
     }
 
     setErrors(nextErrors);
-
     return Object.keys(nextErrors).length === 0;
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (loading || !validate()) {
-      return;
-    }
+    if (loading || !validate()) return;
 
     onSubmit({
       equipmentType: form.equipmentType,
-      projectLocation:
-        form.projectLocation.trim(),
+      projectLocation: form.projectLocation.trim(),
       requiredFrom: form.requiredFrom,
       requiredTo: form.requiredTo,
       maxTransferDistanceKm:
         form.maxTransferDistanceKm === ""
           ? null
           : Number(form.maxTransferDistanceKm),
+      minEeiScore:
+        form.minEeiScore === ""
+          ? null
+          : Number(form.minEeiScore),
       notes: form.notes.trim(),
     });
   };
@@ -136,8 +138,8 @@ export default function RequirementForm({
 
         <p className="mt-1 text-xs leading-5 text-steel">
           Tell EquipShare what your project needs. The allocation
-          engine will evaluate suitable equipment from the available
-          fleet.
+          engine evaluates suitable equipment using EEI, distance,
+          cost and allocation duration.
         </p>
       </div>
 
@@ -146,10 +148,7 @@ export default function RequirementForm({
         name="equipmentType"
         value={form.equipmentType}
         onChange={(event) =>
-          update(
-            "equipmentType",
-            event.target.value
-          )
+          update("equipmentType", event.target.value)
         }
         options={TYPE_OPTIONS}
         placeholder="Select equipment type"
@@ -163,10 +162,7 @@ export default function RequirementForm({
         placeholder="e.g. Site B, Whitefield, Bengaluru"
         value={form.projectLocation}
         onChange={(event) =>
-          update(
-            "projectLocation",
-            event.target.value
-          )
+          update("projectLocation", event.target.value)
         }
         error={errors.projectLocation}
         required
@@ -179,10 +175,7 @@ export default function RequirementForm({
           type="date"
           value={form.requiredFrom}
           onChange={(event) =>
-            update(
-              "requiredFrom",
-              event.target.value
-            )
+            update("requiredFrom", event.target.value)
           }
           error={errors.requiredFrom}
           required
@@ -194,10 +187,7 @@ export default function RequirementForm({
           type="date"
           value={form.requiredTo}
           onChange={(event) =>
-            update(
-              "requiredTo",
-              event.target.value
-            )
+            update("requiredTo", event.target.value)
           }
           error={errors.requiredTo}
           required
@@ -205,18 +195,15 @@ export default function RequirementForm({
       </div>
 
       <Input
-        label="Maximum Transfer Distance"
+        label="Maximum Transfer Distance (km)"
         name="maxTransferDistanceKm"
         type="number"
-        min="1"
+        min="0.1"
         step="0.1"
         placeholder="e.g. 50"
         value={form.maxTransferDistanceKm}
         onChange={(event) =>
-          update(
-            "maxTransferDistanceKm",
-            event.target.value
-          )
+          update("maxTransferDistanceKm", event.target.value)
         }
         error={errors.maxTransferDistanceKm}
       />
@@ -225,6 +212,30 @@ export default function RequirementForm({
         Optional. Limits recommendations to equipment within
         this transfer distance.
       </p>
+
+      {/* Optional EEI filter */}
+      <div className="rounded-lg border border-[#2a2a2d] bg-[#161618] p-4">
+        <Input
+          label="Minimum EEI Score (0–100)"
+          name="minEeiScore"
+          type="number"
+          min="0"
+          max="100"
+          step="0.1"
+          placeholder="Leave empty to include all scores"
+          value={form.minEeiScore}
+          onChange={(event) =>
+            update("minEeiScore", event.target.value)
+          }
+          error={errors.minEeiScore}
+        />
+
+        <p className="mt-2 text-[11px] leading-5 text-gray-500">
+          Optional filter. For example, entering 70 includes
+          equipment with an EEI score of 70 or higher.
+          Leaving it empty applies no minimum EEI restriction.
+        </p>
+      </div>
 
       <div>
         <Input

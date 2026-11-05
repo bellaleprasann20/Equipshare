@@ -80,7 +80,7 @@ export default function Dashboard() {
 
         return {
           id: item?._id || item?.equipmentId || item?.id,
-          name: item?.name || "Equipment",
+         name: item?.name || item?.label || item?.type || "Unnamed Equipment",
           utilization: Math.max(0, Math.min(100, utilization)),
         };
       })
@@ -220,8 +220,8 @@ export default function Dashboard() {
               />
             ) : (
               <div className="space-y-4">
-                {utilizationData.map((item) => (
-                  <div key={item.id || item.name}>
+                {utilizationData.map((item, index) => (
+  <div key={item.id || `${item.name}-${index}`}>
                     <div className="mb-2 flex items-center justify-between gap-4">
                       <span className="truncate text-xs text-zinc-400">
                         {item.name}

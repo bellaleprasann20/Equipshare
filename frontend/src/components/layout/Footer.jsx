@@ -11,12 +11,18 @@ export default function Footer() {
       ],
     },
     {
-      title: "Allocation",
-      links: [
-        { to: "/allocation/history" },
-        {  label: "Allocation History & Order History" },
-      ],
+  title: "Allocation",
+  links: [
+    {
+      to: "/allocation/history",
+      label: "Allocation History",
     },
+    {
+      to: "/orders",
+      label: "Order History",
+    },
+  ],
+},
     {
       title: "Workspace",
       links: [

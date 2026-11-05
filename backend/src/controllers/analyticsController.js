@@ -1,3 +1,4 @@
+import Project from "../models/Project.js";
 import Equipment from "../models/Equipment.js";
 import AllocationRequest from "../models/AllocationRequest.js";
 import {
@@ -40,32 +41,74 @@ export async function getDashboardSummary(req, res) {
   try {
     const userId = req.user.id;
 
-    const [
-      activeAllocations,
-      pendingRequests,
-      equipmentList,
-      recentRequests,
-    ] = await Promise.all([
-      AllocationRequest.countDocuments({
-        requestedBy: userId,
-        status: "active",
-      }),
+    // 1. Find projects belonging to this manager
+    const projects = await Project.find({
+      managerId: userId,
+    })
+      .select("_id name location")
+      .lean();
 
-      AllocationRequest.countDocuments({
-        requestedBy: userId,
-        status: "pending",
-      }),
+    const projectIds = projects.map((project) => project._id);
 
-      Equipment.find({}).lean(),
+    if (projectIds.length === 0) {
+      return res.json({
+        activeAllocations: 0,
+        pendingRequests: 0,
+        avgEEI: null,
+        utilizationByEquipment: [],
+        recentActivity: [],
+      });
+    }
 
-      AllocationRequest.find({
-        requestedBy: userId,
-      })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .lean(),
-    ]);
+    // 2. Fetch manager-specific allocation requests
+    const [activeRequests, pendingRequests, recentRequests] =
+      await Promise.all([
+        AllocationRequest.find({
+          projectId: { $in: projectIds },
+          status: "active",
+          allocatedEquipmentId: { $ne: null },
+        })
+          .populate(
+            "allocatedEquipmentId",
+            "name type operatingHoursLast30Days idleHoursLast30Days"
+          )
+          .lean(),
 
+        AllocationRequest.countDocuments({
+          projectId: { $in: projectIds },
+          status: "pending",
+        }),
+
+        AllocationRequest.find({
+          projectId: { $in: projectIds },
+        })
+          .populate(
+            "allocatedEquipmentId",
+            "name type"
+          )
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .lean(),
+      ]);
+
+    // 3. Collect assigned equipment
+    const equipmentIds = [
+      ...new Set(
+        activeRequests
+          .map((request) =>
+            request.allocatedEquipmentId?._id?.toString()
+          )
+          .filter(Boolean)
+      ),
+    ];
+
+    const equipmentList = equipmentIds.length
+      ? await Equipment.find({
+          _id: { $in: equipmentIds },
+        }).lean()
+      : [];
+
+    // 4. Calculate average EEI for assigned fleet
     const fleetCostRange =
       computeFleetCostRange(equipmentList);
 
@@ -73,46 +116,74 @@ export async function getDashboardSummary(req, res) {
       .map((equipment) =>
         calculateEEI(equipment, fleetCostRange)?.score
       )
-      .filter(
-        (score) =>
-          Number.isFinite(Number(score))
-      )
+      .filter((score) => Number.isFinite(Number(score)))
       .map(Number);
 
     const avgEEI = scores.length
       ? Math.round(
-          (scores.reduce(
-            (sum, score) => sum + score,
-            0
-          ) /
-            scores.length) *
-            10
+          (scores.reduce((sum, score) => sum + score, 0) /
+            scores.length) * 10
         ) / 10
       : null;
 
-    const utilizationByEquipment =
-      equipmentList.slice(0, 8).map((equipment) => {
-        const { utilization, idle } =
-          calculateUtilization(equipment);
+    // 5. Calculate equipment utilization
+    const utilizationByEquipment = equipmentList.map(
+      (equipment) => {
+        const operatingHours =
+          Number(equipment.operatingHoursLast30Days) || 0;
+
+        const idleHours =
+          Number(equipment.idleHoursLast30Days) || 0;
+
+        const totalHours = operatingHours + idleHours;
+
+        const utilization = totalHours > 0
+          ? Math.round((operatingHours / totalHours) * 100)
+          : 0;
 
         return {
-          label: equipment.name,
+          _id: equipment._id,
+          equipmentId: equipment._id,
+          name: equipment.name,
+          type: equipment.type,
+          operatingHours,
+          idleHours,
           utilization,
-          idle,
         };
-      });
-
-    const recentActivity = recentRequests.map(
-      (request) => ({
-        _id: request._id,
-        message: `Requested ${request.equipmentType} for ${request.projectLocation}.`,
-        status: request.status,
-        createdAt: request.createdAt,
-      })
+      }
     );
 
+    // 6. Build recent activity
+    const recentActivity = recentRequests.map((request) => {
+      const equipmentName =
+        request.allocatedEquipmentId?.name;
+
+      let message;
+
+      if (request.status === "pending") {
+        message =
+          `Requested ${request.equipmentType} for ${request.projectLocation} — awaiting admin approval.`;
+      } else if (request.status === "active") {
+        message =
+          `Approved ${request.equipmentType} allocation for ${request.projectLocation}` +
+          (equipmentName ? ` — ${equipmentName}.` : ".");
+      } else {
+        message =
+          `${request.equipmentType} request for ${request.projectLocation} — ${request.status}.`;
+      }
+
+      return {
+        _id: request._id,
+        message,
+        status: request.status,
+        equipmentType: request.equipmentType,
+        equipmentName: equipmentName || null,
+        createdAt: request.createdAt,
+      };
+    });
+
     return res.json({
-      activeAllocations,
+      activeAllocations: activeRequests.length,
       pendingRequests,
       avgEEI,
       utilizationByEquipment,
