@@ -1,3 +1,4 @@
+
 import express from "express";
 import mongoose from "mongoose";
 
@@ -6,6 +7,7 @@ import {
   listMyProjects,
   getProjectById,
   updateProject,
+  completeProject,
   deleteProject,
 } from "../controllers/projectController.js";
 
@@ -58,7 +60,18 @@ router.get(
 );
 
 /*
- * Update own project.
+ * Complete a project and release its equipment.
+ *
+ * PATCH /api/projects/:id/complete
+ */
+router.patch(
+  "/:id/complete",
+  protect,
+  completeProject
+);
+
+/*
+ * Update project details.
  *
  * PUT /api/projects/:id
  */
@@ -69,7 +82,7 @@ router.put(
 );
 
 /*
- * Delete own project.
+ * Delete a project.
  *
  * DELETE /api/projects/:id
  */

@@ -1,7 +1,10 @@
 
 import mongoose from "mongoose";
+
 import Project from "../models/Project.js";
 import AllocationRequest from "../models/AllocationRequest.js";
+import Equipment from "../models/Equipment.js";
+import Order from "../models/Order.js";
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
 
@@ -106,8 +109,8 @@ export async function getProjectById(req, res) {
 
 /**
  * PUT /api/projects/:id
- * Only project details can be updated.
- * Ownership cannot be changed through this endpoint.
+ * Update project details.
+ * Status cannot be changed through this endpoint.
  */
 export async function updateProject(req, res) {
   try {
@@ -125,7 +128,6 @@ export async function updateProject(req, res) {
       "coordinates",
       "startDate",
       "endDate",
-      "status",
     ];
 
     const updates = {};
@@ -196,6 +198,154 @@ export async function updateProject(req, res) {
 }
 
 /**
+ * PATCH /api/projects/:id/complete
+ *
+ * Complete a project:
+ * 1. Complete active allocations.
+ * 2. Cancel pending allocation requests.
+ * 3. Release allocated equipment.
+ * 4. Preserve sold equipment.
+ * 5. Protect equipment used by other active allocations
+ *    or approved orders.
+ */
+export async function completeProject(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({
+        message: "Invalid project ID.",
+      });
+    }
+
+    const project = await Project.findOne({
+      _id: id,
+      ...getProjectFilter(req),
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found.",
+      });
+    }
+
+    if (project.status === "completed") {
+      return res.json({
+        message: "Project is already completed.",
+        project,
+      });
+    }
+
+    // Find active allocations belonging to this project.
+    const activeRequests = await AllocationRequest.find({
+      projectId: project._id,
+      status: "active",
+      allocatedEquipmentId: { $ne: null },
+    })
+      .select("_id allocatedEquipmentId")
+      .lean();
+
+    const equipmentIds = [
+      ...new Set(
+        activeRequests.map((request) =>
+          request.allocatedEquipmentId.toString()
+        )
+      ),
+    ];
+
+    // Complete active allocation requests.
+    await AllocationRequest.updateMany(
+      {
+        projectId: project._id,
+        status: "active",
+      },
+      {
+        $set: { status: "completed" },
+      }
+    );
+
+    // Cancel pending requests for this project.
+    await AllocationRequest.updateMany(
+      {
+        projectId: project._id,
+        status: "pending",
+      },
+      {
+        $set: { status: "cancelled" },
+      }
+    );
+
+    if (equipmentIds.length > 0) {
+      // Find equipment used by other active allocations.
+      const otherActiveEquipment =
+        await AllocationRequest.distinct(
+          "allocatedEquipmentId",
+          {
+            allocatedEquipmentId: { $in: equipmentIds },
+            status: "active",
+          }
+        );
+
+      // Find equipment included in approved orders.
+      const approvedOrders = await Order.find({
+        status: "approved",
+        "items.equipmentId": { $in: equipmentIds },
+      })
+        .select("items.equipmentId")
+        .lean();
+
+      const protectedIds = new Set([
+        ...otherActiveEquipment.map(String),
+
+        ...approvedOrders.flatMap((order) =>
+          order.items
+            .filter((item) =>
+              equipmentIds.includes(
+                item.equipmentId.toString()
+              )
+            )
+            .map((item) => item.equipmentId.toString())
+        ),
+      ]);
+
+      const releasableIds = equipmentIds.filter(
+        (equipmentId) => !protectedIds.has(equipmentId)
+      );
+
+      // Release only equipment currently marked in_use.
+      // Sold equipment remains sold.
+      if (releasableIds.length > 0) {
+        await Equipment.updateMany(
+          {
+            _id: { $in: releasableIds },
+            availability: "in_use",
+          },
+          {
+            $set: { availability: "available" },
+          }
+        );
+      }
+    }
+
+    // Mark project completed.
+    project.status = "completed";
+    await project.save();
+
+    return res.json({
+      message: "Project completed and equipment released successfully.",
+      project,
+      completedAllocations: activeRequests.length,
+    });
+  } catch (err) {
+    console.error("completeProject:", err);
+
+    return res.status(500).json({
+      message: "Failed to complete project.",
+    });
+  }
+}
+
+/**
  * DELETE /api/projects/:id
  * Projects with pending or active allocations cannot be deleted.
  */
@@ -227,7 +377,8 @@ export async function deleteProject(req, res) {
 
     if (hasActiveAllocation) {
       return res.status(409).json({
-        message: "Cannot delete a project with pending or active allocation requests.",
+        message:
+          "Cannot delete a project with pending or active allocation requests.",
       });
     }
 
