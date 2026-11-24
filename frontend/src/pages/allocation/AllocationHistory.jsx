@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +31,8 @@ const ORDER_STATUS = {
       "border border-gray-500/20 bg-gray-500/10 text-gray-400",
   },
 };
+
+const HISTORY_STATUSES = ["approved", "rejected", "cancelled"];
 
 function getItems(response) {
   if (Array.isArray(response)) return response;
@@ -86,7 +89,15 @@ export default function AllocationHistory() {
         const response = await fetchMyOrders();
 
         if (!cancelled) {
-          setOrders(getItems(response));
+          const historyOrders = getItems(response).filter((order) =>
+            HISTORY_STATUSES.includes(
+              String(order?.status || "")
+                .trim()
+                .toLowerCase()
+            )
+          );
+
+          setOrders(historyOrders);
         }
       } catch (err) {
         if (!cancelled) {
@@ -127,8 +138,8 @@ export default function AllocationHistory() {
         </h1>
 
         <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-400">
-          View your equipment orders, approval status, rental details
-          and delivery information.
+          View your approved, rejected and cancelled equipment
+          orders, including rental details and delivery information.
         </p>
       </section>
 
@@ -136,15 +147,15 @@ export default function AllocationHistory() {
       <section>
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a78bfa]">
-            Orders
+            Completed Decisions
           </p>
 
           <h2 className="mt-1 font-display text-2xl font-bold text-white">
-            Your Orders
+            Your Order History
           </h2>
 
           <p className="mt-1 text-sm text-gray-500">
-            Track equipment orders submitted through Checkout.
+            Orders move here after approval, rejection or cancellation.
           </p>
         </div>
 
@@ -202,7 +213,10 @@ export default function AllocationHistory() {
 
                   {/* ORDER ITEMS */}
                   <div className="mt-5 divide-y divide-[#2a2a2d] border-y border-[#2a2a2d]">
-                    {(order?.items || []).map((item, index) => (
+                    {(Array.isArray(order?.items)
+                      ? order.items
+                      : []
+                    ).map((item, index) => (
                       <div
                         key={
                           item?.equipmentId ||
@@ -217,9 +231,7 @@ export default function AllocationHistory() {
 
                           <p className="mt-1 text-xs text-gray-500">
                             {item?.mode === "rent"
-                              ? `Rental • ${
-                                  item?.days || 1
-                                } ${
+                              ? `Rental • ${item?.days || 1} ${
                                   Number(item?.days) === 1
                                     ? "day"
                                     : "days"
@@ -271,11 +283,11 @@ function EmptyOrders({ onBrowse }) {
       </div>
 
       <h3 className="mt-4 font-display text-lg font-semibold text-white">
-        No orders yet
+        No order history yet
       </h3>
 
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-        Your equipment orders submitted through Checkout will
+        Approved, rejected and cancelled equipment orders will
         appear here.
       </p>
 

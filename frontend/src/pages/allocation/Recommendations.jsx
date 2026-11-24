@@ -4,17 +4,35 @@ import Loader from "../../components/common/Loader";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import Button from "../../components/common/Button";
 import { useAllocation } from "../../hooks/useAllocation";
+import { useCart } from "../../context/CartContext";
+
+function getRequiredDays(requestDetails) {
+  if (!requestDetails?.requiredFrom || !requestDetails?.requiredTo) {
+    return 7;
+  }
+
+  const from = new Date(requestDetails.requiredFrom);
+  const to = new Date(requestDetails.requiredTo);
+
+  const difference = Math.ceil(
+    (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return Math.max(1, Math.min(365, difference || 1));
+}
 
 export default function Recommendations() {
   const { requestId } = useParams();
   const navigate = useNavigate();
 
   const { getResultsByRequestId } = useAllocation();
+  const { addItem, items } = useCart();
 
   const [recommendations, setRecommendations] = useState([]);
   const [requestDetails, setRequestDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectionError, setSelectionError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -24,20 +42,18 @@ export default function Recommendations() {
       setError("");
 
       try {
-        // Fetch an existing allocation request.
-        // Do NOT create another allocation here.
         const res = await getResultsByRequestId(requestId);
 
         if (cancelled) return;
 
-        const items =
+        const results =
           res.results ||
           res.recommendations ||
           res.items ||
           [];
 
         setRequestDetails(res.request || {});
-        setRecommendations(items);
+        setRecommendations(results);
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -59,10 +75,52 @@ export default function Recommendations() {
     };
   }, [requestId, getResultsByRequestId]);
 
-  if (loading) {
-    return (
-      <Loader label="Loading equipment recommendations..." />
+  const handleEquipmentRequest = (rec, mode) => {
+    const equipment =
+      rec.equipment ||
+      (typeof rec.equipmentId === "object" ? rec.equipmentId : null) ||
+      {};
+
+    const equipmentId =
+      equipment._id ||
+      rec.equipmentId?._id ||
+      (typeof rec.equipmentId === "string" ? rec.equipmentId : null) ||
+      rec._id;
+
+    if (!equipmentId) {
+      setSelectionError(
+        "Equipment ID is missing. This machine cannot be selected."
+      );
+      return;
+    }
+
+    const selectedEquipment = {
+      ...equipment,
+      _id: equipmentId,
+      name: equipment.name || "Unnamed Equipment",
+      type: equipment.type || rec.equipmentType || "Equipment",
+      location:
+        equipment.location ||
+        equipment.currentLocation?.siteName ||
+        requestDetails?.projectLocation ||
+        "",
+    };
+
+    const requiredDays = getRequiredDays(requestDetails);
+
+    setSelectionError("");
+
+    addItem(
+      selectedEquipment,
+      mode,
+      mode === "rent" ? requiredDays : 1
     );
+
+    navigate("/cart");
+  };
+
+  if (loading) {
+    return <Loader label="Loading equipment recommendations..." />;
   }
 
   if (error && recommendations.length === 0) {
@@ -118,6 +176,12 @@ export default function Recommendations() {
         </div>
       )}
 
+      {selectionError && (
+        <div className="rounded-md border-l-4 border-red-500 bg-red-950/50 p-4">
+          <ErrorMessage message={selectionError} />
+        </div>
+      )}
+
       {/* Results count */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -157,13 +221,23 @@ export default function Recommendations() {
       ) : (
         <div className="grid gap-6">
           {recommendations.map((rec, index) => {
-            const equipment = rec.equipment || {};
+            const equipment =
+              rec.equipment ||
+              (typeof rec.equipmentId === "object"
+                ? rec.equipmentId
+                : {}) ||
+              {};
 
-            const equipmentId = String(
+            const equipmentId =
               equipment._id ||
-                rec.equipmentId ||
-                rec._id ||
-                index
+              rec.equipmentId?._id ||
+              (typeof rec.equipmentId === "string"
+                ? rec.equipmentId
+                : null) ||
+              rec._id;
+
+            const alreadySelected = items.some(
+              (item) => item.equipmentId === String(equipmentId)
             );
 
             const eeiScore =
@@ -171,18 +245,13 @@ export default function Recommendations() {
               equipment.eeiScore ??
               null;
 
-            const allocationScore =
-              rec.allocationScore ?? null;
-
-            const distance =
-              rec.transferDistanceKm ?? null;
-
-            const transferCost =
-              rec.transferCost ?? null;
+            const allocationScore = rec.allocationScore ?? null;
+            const distance = rec.transferDistanceKm ?? null;
+            const transferCost = rec.transferCost ?? null;
 
             return (
               <div
-                key={equipmentId}
+                key={equipmentId || index}
                 className="panel rounded-lg border border-[#2a2a2d] bg-[#1c1c1f] p-6 transition-all hover:border-gray-500"
               >
                 <div className="flex flex-wrap items-start justify-between gap-5">
@@ -303,6 +372,44 @@ export default function Recommendations() {
                     </div>
                   </div>
                 </div>
+
+                {/* Equipment selection actions */}
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#2a2a2d] pt-5">
+                  <div>
+                    <p className="text-sm font-semibold text-white">
+                      {alreadySelected
+                        ? "Equipment already selected"
+                        : "Choose this equipment"}
+                    </p>
+
+                    <p className="mt-1 text-xs text-gray-400">
+                      {alreadySelected
+                        ? "Selecting it again will update its request."
+                        : "Add this machine to your request for administrator approval."}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      disabled={!equipmentId}
+                      onClick={() =>
+                        handleEquipmentRequest(rec, "rent")
+                      }
+                    >
+                      Request to Rent
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      disabled={!equipmentId}
+                      onClick={() =>
+                        handleEquipmentRequest(rec, "buy")
+                      }
+                    >
+                      Request to Buy
+                    </Button>
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -318,19 +425,27 @@ export default function Recommendations() {
             </h3>
 
             <p className="mt-1 max-w-xl text-xs text-gray-400">
-              These results are ranked suggestions. An administrator
-              will review the recommended equipment and approve the
-              final allocation.
+              Select a machine to request a rental or purchase.
+              The administrator will review and approve the request.
             </p>
           </div>
 
-          <Button
-            variant="outline"
-            onClick={() => navigate("/allocation/history")}
-            className="border-[#2a2a2d] text-gray-300 hover:bg-[#2a2a2d]"
-          >
-            View Allocation History
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/allocation/history")}
+              className="border-[#2a2a2d] text-gray-300 hover:bg-[#2a2a2d]"
+            >
+              View Allocation History
+            </Button>
+
+            <Button
+              onClick={() => navigate("/cart")}
+              disabled={items.length === 0}
+            >
+              View Cart ({items.length})
+            </Button>
+          </div>
         </div>
       )}
     </div>

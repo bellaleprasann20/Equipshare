@@ -1,6 +1,7 @@
-
+﻿
 import Equipment from "../models/Equipment.js";
 import AllocationRequest from "../models/AllocationRequest.js";
+import { predictEEIWithAI } from "./eeiAIService.js";
 
 import {
   calculateEEI,
@@ -187,107 +188,123 @@ export async function getRankedRecommendations(requirement) {
   // 4. Calculate equipment scores.
   // ---------------------------------------------------------
 
-  const scored = candidates
-    .map((equipment) => {
-      const equipmentId = equipment._id.toString();
+  const scored = (
+    await Promise.all(
+      candidates.map(async (equipment) => {
+        const equipmentId = equipment._id.toString();
 
-      // Exclude already allocated equipment.
-      if (blockedEquipmentIds.has(equipmentId)) {
-        blockedCount++;
-        return null;
-      }
+        // Exclude already allocated equipment.
+        if (blockedEquipmentIds.has(equipmentId)) {
+          blockedCount++;
+          return null;
+        }
 
-      // Calculate transfer distance.
-      const distanceKm = resolveDistanceKm(
-        equipment,
-        projectLocation,
-        projectCoordinates
-      );
+        // Calculate transfer distance.
+        const distanceKm = resolveDistanceKm(
+          equipment,
+          projectLocation,
+          projectCoordinates
+        );
 
-      // Apply optional distance limit.
-      if (
-        distanceLimit !== null &&
-        distanceKm > distanceLimit
-      ) {
-        distanceExcludedCount++;
-        return null;
-      }
+        // Apply optional distance limit.
+        if (
+          distanceLimit !== null &&
+          distanceKm > distanceLimit
+        ) {
+          distanceExcludedCount++;
+          return null;
+        }
 
-      // Calculate transfer cost.
-      const transferCost = estimateTransferCost(
-        distanceKm,
-        normalizedType
-      );
+        // Calculate transfer cost.
+        const transferCost = estimateTransferCost(
+          distanceKm,
+          normalizedType
+        );
 
-      // Calculate Equipment Efficiency Index.
-      const {
-        score: eeiScore,
-        breakdown: eeiBreakdown,
-      } = calculateEEI(equipment, fleetCostRange);
+        // Keep the existing formula for the factor breakdown.
+        const formulaResult = calculateEEI(
+          equipment,
+          fleetCostRange
+        );
 
-      // Apply optional minimum EEI filter.
-      if (
-        minimumEeiScore !== null &&
-        eeiScore < minimumEeiScore
-      ) {
-        eeiExcludedCount++;
-        return null;
-      }
+        // Request the AI-generated EEI score.
+        const aiPrediction = await predictEEIWithAI(
+          equipment,
+          fleetCostRange
+        );
 
-      // -------------------------------------------------------
-      // Allocation sub-scores.
-      // -------------------------------------------------------
+        // Use formula score if AI is unavailable.
+        const eeiScore =
+          aiPrediction?.score ?? formulaResult.score;
 
-      const proximityScore = clamp(
-        100 -
-          (distanceKm / MAX_REASONABLE_DISTANCE_KM) * 100,
-        0,
-        100
-      );
+        const eeiBreakdown = formulaResult.breakdown;
 
-      const costScore = clamp(
-        Number(eeiBreakdown.cost) || 0,
-        0,
-        100
-      );
+        const eeiSource = aiPrediction ? "AI" : "FORMULA";
+        const eeiModel = aiPrediction?.model ?? null;
+        const eeiCondition = aiPrediction?.condition ?? null;
 
-      const durationFitScore = computeDurationFitScore(
-        equipment,
-        blockedEquipmentIds
-      );
+        // Apply optional minimum EEI filter.
+        if (
+          minimumEeiScore !== null &&
+          eeiScore < minimumEeiScore
+        ) {
+          eeiExcludedCount++;
+          return null;
+        }
 
-      // -------------------------------------------------------
-      // Final weighted allocation score.
-      // -------------------------------------------------------
+        // Allocation sub-scores.
+        const proximityScore = clamp(
+          100 -
+            (distanceKm / MAX_REASONABLE_DISTANCE_KM) * 100,
+          0,
+          100
+        );
 
-      const allocationScore =
-        eeiScore * ALLOCATION_WEIGHTS.eei +
-        proximityScore * ALLOCATION_WEIGHTS.proximity +
-        costScore * ALLOCATION_WEIGHTS.cost +
-        durationFitScore * ALLOCATION_WEIGHTS.durationFit;
+        // Cost remains formula-based.
+        const costScore = clamp(
+          Number(eeiBreakdown.cost) || 0,
+          0,
+          100
+        );
 
-      return {
-        equipment: {
-          ...equipment,
-          eeiScore,
-          eeiBreakdown,
-        },
+        const durationFitScore = computeDurationFitScore(
+          equipment,
+          blockedEquipmentIds
+        );
 
-        allocationScore: roundToOneDecimal(allocationScore),
+        // Preserve existing allocation weights.
+        const allocationScore =
+          eeiScore * ALLOCATION_WEIGHTS.eei +
+          proximityScore * ALLOCATION_WEIGHTS.proximity +
+          costScore * ALLOCATION_WEIGHTS.cost +
+          durationFitScore * ALLOCATION_WEIGHTS.durationFit;
 
-        transferDistanceKm: roundToOneDecimal(distanceKm),
+        return {
+          equipment: {
+            ...equipment,
+            eeiScore,
+            eeiBreakdown,
+            eeiSource,
+            eeiModel,
+            eeiCondition,
+          },
 
-        transferCost,
+          allocationScore: roundToOneDecimal(allocationScore),
 
-        scoreBreakdown: {
-          eei: roundToOneDecimal(eeiScore),
-          distance: roundToOneDecimal(proximityScore),
-          cost: roundToOneDecimal(costScore),
-          durationFit: roundToOneDecimal(durationFitScore),
-        },
-      };
-    })
-    .filter(Boolean);
+          transferDistanceKm: roundToOneDecimal(distanceKm),
+
+          transferCost,
+
+          scoreBreakdown: {
+            eei: roundToOneDecimal(eeiScore),
+            distance: roundToOneDecimal(proximityScore),
+            cost: roundToOneDecimal(costScore),
+            durationFit: roundToOneDecimal(durationFitScore),
+          },
+        };
+      })
+    )
+  ).filter(Boolean);
 
   // ---------------------------------------------------------
   // 5. Log exclusion details when no recommendation survives.
@@ -423,3 +440,5 @@ function clamp(value, min, max) {
 function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
 }
+
+

@@ -1,3 +1,4 @@
+﻿
 import Project from "../models/Project.js";
 import mongoose from "mongoose";
 import AllocationRequest from "../models/AllocationRequest.js";
@@ -43,8 +44,12 @@ export async function requestAllocation(req, res) {
       notes,
     } = req.body;
 
-    if (!equipmentType || !projectLocation?.trim() ||
-        !requiredFrom || !requiredTo) {
+    if (
+      !equipmentType ||
+      !projectLocation?.trim() ||
+      !requiredFrom ||
+      !requiredTo
+    ) {
       return res.status(400).json({
         message:
           "Equipment type, project location, start date and end date are required.",
@@ -78,7 +83,8 @@ export async function requestAllocation(req, res) {
 
       if (!Number.isFinite(distance) || distance <= 0) {
         return res.status(400).json({
-          message: "Maximum transfer distance must be greater than zero.",
+          message:
+            "Maximum transfer distance must be greater than zero.",
         });
       }
     }
@@ -127,13 +133,15 @@ export async function requestAllocation(req, res) {
 
       if (!project) {
         return res.status(404).json({
-          message: "Project not found or you do not have access to it.",
+          message:
+            "Project not found or you do not have access to it.",
         });
       }
 
       if (project.status !== "active") {
         return res.status(400).json({
-          message: "Equipment can only be requested for active projects.",
+          message:
+            "Equipment can only be requested for active projects.",
         });
       }
     } else {
@@ -164,19 +172,19 @@ export async function requestAllocation(req, res) {
     }
 
     const normalizedEquipmentType = String(equipmentType)
-  .trim()
-  .toLowerCase();
+      .trim()
+      .toLowerCase();
 
-const existingRequest = await AllocationRequest.findOne({
-  projectId: project._id,
-  equipmentType: normalizedEquipmentType,
-  status: { $in: ["pending", "active"] },
-}).lean();
+    const existingRequest = await AllocationRequest.findOne({
+      projectId: project._id,
+      equipmentType: normalizedEquipmentType,
+      status: { $in: ["pending", "active"] },
+    }).lean();
 
     if (existingRequest) {
       return res.status(409).json({
-       message:
-  `This project already has a pending or active ${normalizedEquipmentType} request. Wait for it to be reviewed before creating another.`,
+        message:
+          `This project already has a pending or active ${normalizedEquipmentType} request. Wait for it to be reviewed before creating another.`,
         requestId: existingRequest._id,
       });
     }
@@ -226,6 +234,8 @@ const existingRequest = await AllocationRequest.findOne({
         allocationScore: result.allocationScore,
         transferDistanceKm: result.transferDistanceKm,
         transferCost: result.transferCost,
+        eeiSource: result.equipment.eeiSource ?? "FORMULA",
+        eeiModel: result.equipment.eeiModel ?? null,
         scoreBreakdown: result.scoreBreakdown,
       })),
     });
@@ -275,7 +285,8 @@ export async function getAllocationResults(req, res) {
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({
-        message: "You are not allowed to view this allocation request.",
+        message:
+          "You are not allowed to view this allocation request.",
       });
     }
 
@@ -301,6 +312,8 @@ export async function getAllocationResults(req, res) {
         allocationScore: result.allocationScore,
         transferDistanceKm: result.transferDistanceKm,
         transferCost: result.transferCost,
+        eeiSource: result.equipment.eeiSource ?? "FORMULA",
+        eeiModel: result.equipment.eeiModel ?? null,
         scoreBreakdown: result.scoreBreakdown,
       }))
       .filter((result) => result.equipment);
@@ -379,6 +392,8 @@ export async function listPendingAllocations(req, res) {
           allocationScore: result.allocationScore,
           transferDistanceKm: result.transferDistanceKm,
           transferCost: result.transferCost,
+        eeiSource: result.equipment.eeiSource ?? "FORMULA",
+        eeiModel: result.equipment.eeiModel ?? null,
           scoreBreakdown: result.scoreBreakdown,
           equipment:
             equipmentMap[result.equipmentId.toString()],
@@ -582,6 +597,9 @@ export async function getAllocationHistory(req, res) {
     const items = requests.map((request) => ({
       _id: request._id,
 
+      // Required to associate this allocation with its project.
+      projectId: request.projectId,
+
       equipmentType: request.equipmentType,
 
       projectLocation: request.projectLocation,
@@ -625,3 +643,4 @@ export async function getAllocationHistory(req, res) {
     });
   }
 }
+

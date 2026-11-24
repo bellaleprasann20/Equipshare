@@ -1,0 +1,25 @@
+{
+    "model": "RandomForestRegressor",
+    "training_records": 120,
+    "testing_records": 30,
+    "total_records": 150,
+    "mae": 5.7213,
+    "rmse": 7.095,
+    "r2": 0.7965,
+    "target": "eei_score",
+    "features": [
+        "operating_hours",
+        "idle_hours",
+        "total_jobs",
+        "breakdown_count",
+        "days_since_service",
+        "maintenance_interval_days",
+        "has_service_date",
+        "age_years",
+        "has_purchase_date",
+        "operating_cost_per_day",
+        "cost_score",
+        "equipment_type"
+    ],
+    "random_state": 42
+}

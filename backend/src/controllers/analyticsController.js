@@ -1,6 +1,9 @@
+
 import Project from "../models/Project.js";
 import Equipment from "../models/Equipment.js";
 import AllocationRequest from "../models/AllocationRequest.js";
+import Order from "../models/Order.js";
+
 import {
   calculateEEI,
   computeFleetCostRange,
@@ -8,11 +11,14 @@ import {
 
 /* =========================================================
    HELPERS
-   ========================================================= */
+========================================================= */
 
 function calculateUtilization(equipment) {
-  const operating = Number(equipment.operatingHoursLast30Days) || 0;
-  const idle = Number(equipment.idleHoursLast30Days) || 0;
+  const operating =
+    Number(equipment.operatingHoursLast30Days) || 0;
+
+  const idle =
+    Number(equipment.idleHoursLast30Days) || 0;
 
   const total = operating + idle;
 
@@ -35,111 +41,170 @@ function calculateUtilization(equipment) {
 
 /* =========================================================
    GET /api/analytics/dashboard
-   ========================================================= */
+========================================================= */
 
 export async function getDashboardSummary(req, res) {
   try {
     const userId = req.user.id;
 
-    // 1. Find projects belonging to this manager
+    // Find projects belonging to this manager
     const projects = await Project.find({
       managerId: userId,
     })
       .select("_id name location")
       .lean();
 
-    const projectIds = projects.map((project) => project._id);
+    const projectIds = projects.map(
+      (project) => project._id
+    );
 
-    if (projectIds.length === 0) {
-      return res.json({
-        activeAllocations: 0,
-        pendingRequests: 0,
-        avgEEI: null,
-        utilizationByEquipment: [],
-        recentActivity: [],
-      });
+    // Fetch allocation requests and normal orders
+    const [
+      activeRequests,
+      pendingAllocationRequests,
+      recentRequests,
+      approvedOrders,
+      pendingOrders,
+      recentOrders,
+    ] = await Promise.all([
+      AllocationRequest.find({
+        projectId: { $in: projectIds },
+        status: "active",
+        allocatedEquipmentId: { $ne: null },
+      })
+        .populate(
+          "allocatedEquipmentId",
+          "name type operatingHoursLast30Days idleHoursLast30Days"
+        )
+        .lean(),
+
+      AllocationRequest.countDocuments({
+        projectId: { $in: projectIds },
+        status: "pending",
+      }),
+
+      AllocationRequest.find({
+        projectId: { $in: projectIds },
+      })
+        .populate(
+          "allocatedEquipmentId",
+          "name type"
+        )
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+
+      Order.find({
+        user: userId,
+        status: "approved",
+      })
+        .populate(
+          "items.equipmentId",
+          "name type operatingHoursLast30Days idleHoursLast30Days"
+        )
+        .lean(),
+
+      Order.countDocuments({
+        user: userId,
+        status: "pending",
+      }),
+
+      Order.find({
+        user: userId,
+      })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+    ]);
+
+    // Count approved equipment items
+    const approvedOrderItems =
+      approvedOrders.reduce(
+        (total, order) =>
+          total + (order.items?.length || 0),
+        0
+      );
+
+    const activeAllocations =
+      activeRequests.length + approvedOrderItems;
+
+    // Count pending requests from both workflows
+    const pendingRequests =
+      pendingAllocationRequests + pendingOrders;
+
+    // Collect unique assigned equipment
+    const equipmentMap = new Map();
+
+    for (const request of activeRequests) {
+      const equipment =
+        request.allocatedEquipmentId;
+
+      if (equipment?._id) {
+        equipmentMap.set(
+          equipment._id.toString(),
+          equipment
+        );
+      }
     }
 
-    // 2. Fetch manager-specific allocation requests
-    const [activeRequests, pendingRequests, recentRequests] =
-      await Promise.all([
-        AllocationRequest.find({
-          projectId: { $in: projectIds },
-          status: "active",
-          allocatedEquipmentId: { $ne: null },
-        })
-          .populate(
-            "allocatedEquipmentId",
-            "name type operatingHoursLast30Days idleHoursLast30Days"
-          )
-          .lean(),
+    for (const order of approvedOrders) {
+      for (const item of order.items || []) {
+        const equipment = item.equipmentId;
 
-        AllocationRequest.countDocuments({
-          projectId: { $in: projectIds },
-          status: "pending",
-        }),
+        if (equipment?._id) {
+          equipmentMap.set(
+            equipment._id.toString(),
+            equipment
+          );
+        }
+      }
+    }
 
-        AllocationRequest.find({
-          projectId: { $in: projectIds },
-        })
-          .populate(
-            "allocatedEquipmentId",
-            "name type"
-          )
-          .sort({ createdAt: -1 })
-          .limit(5)
-          .lean(),
-      ]);
-
-    // 3. Collect assigned equipment
-    const equipmentIds = [
-      ...new Set(
-        activeRequests
-          .map((request) =>
-            request.allocatedEquipmentId?._id?.toString()
-          )
-          .filter(Boolean)
-      ),
+    const equipmentList = [
+      ...equipmentMap.values(),
     ];
 
-    const equipmentList = equipmentIds.length
-      ? await Equipment.find({
-          _id: { $in: equipmentIds },
-        }).lean()
-      : [];
-
-    // 4. Calculate average EEI for assigned fleet
+    // Calculate average EEI
     const fleetCostRange =
       computeFleetCostRange(equipmentList);
 
     const scores = equipmentList
-      .map((equipment) =>
-        calculateEEI(equipment, fleetCostRange)?.score
+      .map(
+        (equipment) =>
+          calculateEEI(
+            equipment,
+            fleetCostRange
+          )?.score
       )
-      .filter((score) => Number.isFinite(Number(score)))
+      .filter((score) =>
+        Number.isFinite(Number(score))
+      )
       .map(Number);
 
     const avgEEI = scores.length
       ? Math.round(
-          (scores.reduce((sum, score) => sum + score, 0) /
-            scores.length) * 10
+          (scores.reduce(
+            (sum, score) => sum + score,
+            0
+          ) / scores.length) * 10
         ) / 10
       : null;
 
-    // 5. Calculate equipment utilization
-    const utilizationByEquipment = equipmentList.map(
-      (equipment) => {
+    // Equipment utilization
+    const utilizationByEquipment =
+      equipmentList.map((equipment) => {
         const operatingHours =
-          Number(equipment.operatingHoursLast30Days) || 0;
+          Number(
+            equipment.operatingHoursLast30Days
+          ) || 0;
 
         const idleHours =
-          Number(equipment.idleHoursLast30Days) || 0;
+          Number(
+            equipment.idleHoursLast30Days
+          ) || 0;
 
-        const totalHours = operatingHours + idleHours;
-
-        const utilization = totalHours > 0
-          ? Math.round((operatingHours / totalHours) * 100)
-          : 0;
+        const totalHours =
+          operatingHours + idleHours;
 
         return {
           _id: equipment._id,
@@ -148,59 +213,113 @@ export async function getDashboardSummary(req, res) {
           type: equipment.type,
           operatingHours,
           idleHours,
-          utilization,
+          utilization:
+            totalHours > 0
+              ? Math.round(
+                  (operatingHours / totalHours) *
+                    100
+                )
+              : 0,
         };
-      }
-    );
+      });
 
-    // 6. Build recent activity
-    const recentActivity = recentRequests.map((request) => {
-      const equipmentName =
-        request.allocatedEquipmentId?.name;
+    // Smart Allocation activity
+    const allocationActivity =
+      recentRequests.map((request) => {
+        const equipmentName =
+          request.allocatedEquipmentId?.name;
 
-      let message;
+        let message;
 
-      if (request.status === "pending") {
-        message =
-          `Requested ${request.equipmentType} for ${request.projectLocation} — awaiting admin approval.`;
-      } else if (request.status === "active") {
-        message =
-          `Approved ${request.equipmentType} allocation for ${request.projectLocation}` +
-          (equipmentName ? ` — ${equipmentName}.` : ".");
-      } else {
-        message =
-          `${request.equipmentType} request for ${request.projectLocation} — ${request.status}.`;
-      }
+        if (request.status === "pending") {
+          message =
+            `Requested ${request.equipmentType} for ${request.projectLocation} — awaiting admin approval.`;
+        } else if (request.status === "active") {
+          message =
+            `Approved ${request.equipmentType} allocation for ${request.projectLocation}` +
+            (equipmentName
+              ? ` — ${equipmentName}.`
+              : ".");
+        } else {
+          message =
+            `${request.equipmentType} request — ${request.status}.`;
+        }
 
-      return {
-        _id: request._id,
-        message,
-        status: request.status,
-        equipmentType: request.equipmentType,
-        equipmentName: equipmentName || null,
-        createdAt: request.createdAt,
-      };
-    });
+        return {
+          _id: request._id,
+          message,
+          status: request.status,
+          createdAt: request.createdAt,
+        };
+      });
+
+    // Normal order activity
+    const orderActivity =
+      recentOrders.map((order) => {
+        const names = (order.items || [])
+          .map((item) => item.name)
+          .filter(Boolean)
+          .join(", ");
+
+        let message;
+
+        if (order.status === "approved") {
+          message =
+            `Your equipment order was approved` +
+            (names ? ` — ${names}.` : ".");
+        } else if (order.status === "pending") {
+          message =
+            `Your equipment order is awaiting admin approval` +
+            (names ? ` — ${names}.` : ".");
+        } else {
+          message =
+            `Your equipment order was ${order.status}` +
+            (names ? ` — ${names}.` : ".");
+        }
+
+        return {
+          _id: order._id,
+          message,
+          status: order.status,
+          createdAt: order.createdAt,
+        };
+      });
+
+    // Combine recent activity
+    const recentActivity = [
+      ...allocationActivity,
+      ...orderActivity,
+    ]
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt || 0) -
+          new Date(a.createdAt || 0)
+      )
+      .slice(0, 5);
 
     return res.json({
-      activeAllocations: activeRequests.length,
+      activeAllocations,
       pendingRequests,
       avgEEI,
       utilizationByEquipment,
       recentActivity,
     });
   } catch (err) {
-    console.error("getDashboardSummary:", err);
+    console.error(
+      "getDashboardSummary:",
+      err
+    );
 
     return res.status(500).json({
-      message: "Failed to load dashboard analytics.",
+      message:
+        "Failed to load dashboard analytics.",
     });
   }
 }
 
 /* =========================================================
    GET /api/analytics/admin-summary
-   ========================================================= */
+========================================================= */
 
 export async function getAdminSummary(req, res) {
   try {
@@ -257,14 +376,15 @@ export async function getAdminSummary(req, res) {
           .utilization
     );
 
-    const avgUtilization = utilizations.length
-      ? Math.round(
-          utilizations.reduce(
-            (sum, value) => sum + value,
-            0
-          ) / utilizations.length
-        )
-      : 0;
+    const avgUtilization =
+      utilizations.length
+        ? Math.round(
+            utilizations.reduce(
+              (sum, value) => sum + value,
+              0
+            ) / utilizations.length
+          )
+        : 0;
 
     const lowestPerformingEquipment =
       [...scored]
@@ -282,10 +402,12 @@ export async function getAdminSummary(req, res) {
     const fleetUtilization =
       scored.slice(0, 10).map(
         (equipment) => {
-          const { utilization, idle } =
-            calculateUtilization(
-              equipment
-            );
+          const {
+            utilization,
+            idle,
+          } = calculateUtilization(
+            equipment
+          );
 
           return {
             label: equipment.name,
@@ -303,22 +425,21 @@ export async function getAdminSummary(req, res) {
       fleetUtilization,
     });
   } catch (err) {
-    console.error("getAdminSummary:", err);
+    console.error(
+      "getAdminSummary:",
+      err
+    );
 
     return res.status(500).json({
-      message: "Failed to load admin analytics.",
+      message:
+        "Failed to load admin analytics.",
     });
   }
 }
 
 /* =========================================================
    GET /api/analytics/utilization-trend
-   =========================================================
-   NOTE:
-   This is a current equipment snapshot, not a historical
-   week-over-week trend. Real historical trend data requires
-   utilization snapshots stored over time.
-   ========================================================= */
+========================================================= */
 
 export async function getUtilizationTrend(req, res) {
   try {
@@ -330,8 +451,10 @@ export async function getUtilizationTrend(req, res) {
 
     const trend = equipmentList.map(
       (equipment) => {
-        const { utilization, idle } =
-          calculateUtilization(equipment);
+        const {
+          utilization,
+          idle,
+        } = calculateUtilization(equipment);
 
         return {
           label: equipment.name,
@@ -357,14 +480,9 @@ export async function getUtilizationTrend(req, res) {
 
 /* =========================================================
    GET /api/analytics/baseline-comparison
-   =========================================================
-   No fake research numbers.
-   ========================================================= */
+========================================================= */
 
-export async function getBaselineComparison(
-  req,
-  res
-) {
+export async function getBaselineComparison(req, res) {
   return res.status(503).json({
     message:
       "Baseline comparison data is not available yet. Run the research evaluation experiments first.",
@@ -373,12 +491,9 @@ export async function getBaselineComparison(
 
 /* =========================================================
    POST /api/analytics/reports
-   ========================================================= */
+========================================================= */
 
-export async function generateReport(
-  req,
-  res
-) {
+export async function generateReport(req, res) {
   const { type, rangeDays } = req.body;
 
   const allowedTypes = [

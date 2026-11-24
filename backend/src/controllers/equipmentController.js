@@ -1,6 +1,30 @@
-import Equipment from "../models/Equipment.js";
+﻿import Equipment from "../models/Equipment.js";
 import RentalHistory from "../models/RentalHistory.js";
 import { calculateEEI, computeFleetCostRange } from "../services/eeiCalculator.js";
+import { predictEEIWithAI } from "../services/eeiAIService.js";
+/**
+ * Calculate EEI using AI first, with the existing formula as fallback.
+ * The five-factor breakdown remains formula-based.
+ */
+async function getEquipmentEEI(equipment, fleetCostRange) {
+  const formulaResult = calculateEEI(
+    equipment,
+    fleetCostRange
+  );
+
+  const aiPrediction = await predictEEIWithAI(
+    equipment,
+    fleetCostRange
+  );
+
+  return {
+    score: aiPrediction?.score ?? formulaResult.score,
+    breakdown: formulaResult.breakdown,
+    eeiSource: aiPrediction ? "AI" : "FORMULA",
+    eeiModel: aiPrediction?.model ?? null,
+    eeiCondition: aiPrediction?.condition ?? null,
+  };
+}
 
 /**
  * GET /api/equipment?search=&type=&location=&availability=&page=&pageSize=
@@ -23,14 +47,30 @@ export async function listEquipment(req, res) {
     ]);
 
     // Attach live EEI scores (cheap enough to compute on read for
-    // this project's scale — see note in server.js about a
+    // this project's scale â€” see note in server.js about a
     // scheduled recompute job for a larger fleet)
     const allForCostRange = await Equipment.find({}).lean();
     const fleetCostRange = computeFleetCostRange(allForCostRange);
-    const itemsWithEEI = items.map((eq) => {
-      const { score } = calculateEEI(eq, fleetCostRange);
-      return { ...eq.toObject(), eeiScore: score };
-    });
+    const itemsWithEEI = await Promise.all(
+      items.map(async (eq) => {
+        const {
+          score,
+          breakdown,
+          eeiSource,
+          eeiModel,
+          eeiCondition,
+        } = await getEquipmentEEI(eq, fleetCostRange);
+
+        return {
+          ...eq.toObject(),
+          eeiScore: score,
+          eeiBreakdown: breakdown,
+          eeiSource,
+          eeiModel,
+          eeiCondition,
+        };
+      })
+    );
 
     res.json({ items: itemsWithEEI, totalCount });
   } catch (err) {
@@ -48,16 +88,31 @@ export async function getEquipmentById(req, res) {
 
     const allForCostRange = await Equipment.find({}).lean();
     const fleetCostRange = computeFleetCostRange(allForCostRange);
-    const { score, breakdown } = calculateEEI(equipment, fleetCostRange);
+    const {
+      score,
+      breakdown,
+      eeiSource,
+      eeiModel,
+      eeiCondition,
+    } = await getEquipmentEEI(equipment, fleetCostRange);
 
-    res.json({ equipment: { ...equipment.toObject(), eeiScore: score, eeiBreakdown: breakdown } });
+    res.json({
+      equipment: {
+        ...equipment.toObject(),
+        eeiScore: score,
+        eeiBreakdown: breakdown,
+        eeiSource,
+        eeiModel,
+        eeiCondition,
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch equipment.", error: err.message });
   }
 }
 
 /**
- * POST /api/equipment  (admin only — see roleMiddleware)
+ * POST /api/equipment  (admin only â€” see roleMiddleware)
  */
 export async function createEquipment(req, res) {
   try {
@@ -100,7 +155,7 @@ export async function deleteEquipment(req, res) {
 /**
  * POST /api/equipment/:id/reviews
  * Body: { rating, comment }
- * Guarded by the same eligibility check as GET can-review below —
+ * Guarded by the same eligibility check as GET can-review below â€”
  * only users with a completed RentalHistory entry for this
  * equipment may review it (Phase-1 proposal requirement).
  */
@@ -150,3 +205,7 @@ export async function canReview(req, res) {
     res.status(500).json({ message: "Failed to check review eligibility.", error: err.message });
   }
 }
+
+
+
+

@@ -1,9 +1,12 @@
+
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   fetchMyOrders,
   cancelOrder,
 } from "../../services/orderService";
+
 import { formatINR } from "../../utils/pricing";
 import Loader from "../../components/common/Loader";
 import ErrorMessage from "../../components/common/ErrorMessage";
@@ -15,28 +18,6 @@ const STATUS_CONFIG = {
     className:
       "border-amber-500/20 bg-amber-500/10 text-amber-400",
   },
-  approved: {
-    label: "Approved",
-    className:
-      "border-green-500/20 bg-green-500/10 text-green-400",
-  },
-  rejected: {
-    label: "Rejected",
-    className:
-      "border-red-500/20 bg-red-500/10 text-red-400",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className:
-      "border-gray-500/20 bg-gray-500/10 text-gray-400",
-  },
-};
-
-const PAYMENT_LABEL = {
-  cod: "Pay on delivery / site",
-  bank: "Bank Transfer",
-  upi: "UPI",
-  internal_budget: "Internal Fleet Budget",
 };
 
 function getStatusConfig(status) {
@@ -78,21 +59,10 @@ function getOrderReference(order) {
 }
 
 function getOrders(response) {
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  if (Array.isArray(response?.orders)) {
-    return response.orders;
-  }
-
-  if (Array.isArray(response?.items)) {
-    return response.items;
-  }
-
-  if (Array.isArray(response?.data)) {
-    return response.data;
-  }
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.orders)) return response.orders;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.data)) return response.data;
 
   return [];
 }
@@ -120,6 +90,13 @@ function getLineTotal(item) {
   return 0;
 }
 
+const PAYMENT_LABEL = {
+  cod: "Pay on delivery / site",
+  bank: "Bank Transfer",
+  upi: "UPI",
+  internal_budget: "Internal Fleet Budget",
+};
+
 export default function Orders() {
   const navigate = useNavigate();
 
@@ -140,7 +117,15 @@ export default function Orders() {
       setError("");
 
       const response = await fetchMyOrders();
-      setOrders(getOrders(response));
+
+      const pendingOrders = getOrders(response).filter(
+        (order) =>
+          String(order?.status || "")
+            .trim()
+            .toLowerCase() === "pending"
+      );
+
+      setOrders(pendingOrders);
     } catch (err) {
       setError(
         err?.response?.data?.message ||
@@ -190,7 +175,7 @@ export default function Orders() {
 
   return (
     <div className="mx-auto w-full max-w-6xl py-6 sm:py-8">
-      {/* Header */}
+      {/* HEADER */}
       <div className="mb-6 flex flex-col gap-4 border-b border-[#2a2a2d] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b5cf6]">
@@ -202,8 +187,9 @@ export default function Orders() {
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-            Track equipment requests, approval status, and deployment
-            information.
+            Track your equipment requests awaiting admin approval.
+            Approved, rejected and cancelled orders move to Order
+            History.
           </p>
         </div>
 
@@ -229,7 +215,7 @@ export default function Orders() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* EMPTY STATE */}
       {orders.length === 0 ? (
         <div className="rounded-xl border border-[#2a2a2d] bg-[#1c1c1f] p-10 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6]">
@@ -237,21 +223,29 @@ export default function Orders() {
           </div>
 
           <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b5cf6]">
-            No Orders
+            No Pending Orders
           </p>
 
           <h2 className="mt-2 font-display text-xl font-bold text-white">
-            No equipment orders yet
+            No orders awaiting approval
           </h2>
 
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-400">
-            Equipment requests you submit through the catalog and
-            checkout will appear here.
+            Your pending equipment requests will appear here.
+            Check Order History for approved, rejected and cancelled
+            orders.
           </p>
 
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button onClick={() => navigate("/equipment")}>
               Browse Equipment
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => navigate("/allocation/history")}
+            >
+              Order History
             </Button>
           </div>
         </div>
@@ -259,14 +253,14 @@ export default function Orders() {
         <div className="space-y-5">
           {orders.map((order) => {
             const orderId = getOrderId(order);
-            const status = getStatusConfig(order?.status);
+            const status = getStatusConfig("pending");
 
             return (
               <article
                 key={orderId}
                 className="overflow-hidden rounded-xl border border-[#2a2a2d] bg-[#1c1c1f]"
               >
-                {/* Order header */}
+                {/* ORDER HEADER */}
                 <div className="border-b border-[#2a2a2d] px-5 py-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -302,7 +296,7 @@ export default function Orders() {
                   </div>
                 </div>
 
-                {/* Items */}
+                {/* ITEMS */}
                 <div className="px-5">
                   <div className="divide-y divide-[#2a2a2d]">
                     {(Array.isArray(order?.items)
@@ -325,9 +319,7 @@ export default function Orders() {
                           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
                             {item?.mode === "rent" ? (
                               <>
-                                <span>
-                                  Rental
-                                </span>
+                                <span>Rental</span>
 
                                 <span>
                                   {item?.days || 1} day
@@ -357,7 +349,7 @@ export default function Orders() {
                   </div>
                 </div>
 
-                {/* Delivery / contact information */}
+                {/* DELIVERY / CONTACT INFORMATION */}
                 <div className="border-t border-[#2a2a2d] bg-[#161618]/50 px-5 py-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -397,18 +389,14 @@ export default function Orders() {
                       </span>
                     </p>
 
-                    {["pending", "approved"].includes(
-                      order?.status
-                    ) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        loading={cancellingId === orderId}
-                        onClick={() => handleCancel(orderId)}
-                      >
-                        Cancel Order
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={cancellingId === orderId}
+                      onClick={() => handleCancel(orderId)}
+                    >
+                      Cancel Order
+                    </Button>
                   </div>
                 </div>
               </article>

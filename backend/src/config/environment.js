@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+﻿import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -46,4 +46,7 @@ export const env = {
   CLIENT_URL:
     process.env.CLIENT_URL ||
     "http://localhost:5173",
+  ML_SERVICE_URL:
+    process.env.ML_SERVICE_URL ||
+    "http://127.0.0.1:8001",
 };

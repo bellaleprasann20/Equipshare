@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 
 const rankedResultSchema = new mongoose.Schema(
   {
@@ -32,7 +32,18 @@ const rankedResultSchema = new mongoose.Schema(
       min: 0,
     },
 
-    scoreBreakdown: {
+    eeiSource: {
+      type: String,
+      enum: ["AI", "FORMULA"],
+      default: "FORMULA",
+    },
+
+    eeiModel: {
+      type: String,
+      default: null,
+    },
+
+scoreBreakdown: {
       eei: {
         type: Number,
         min: 0,
@@ -195,4 +206,5 @@ export default mongoose.model(
   "AllocationRequest",
   allocationRequestSchema
 );
+
 
