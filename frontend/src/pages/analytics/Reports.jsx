@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 import Select from "../../components/common/Select";
@@ -58,11 +59,15 @@ export default function Reports() {
     setSuccess("");
 
     if (!reportType || !rangeDays) {
-      setError("Please select a report type and date range.");
+      setError(
+        "Please select a report type and date range."
+      );
       return;
     }
 
     setLoading(true);
+
+    let blobUrl = null;
 
     try {
       const response = await generateReport({
@@ -70,31 +75,77 @@ export default function Reports() {
         rangeDays: Number(rangeDays),
       });
 
-      const downloadUrl =
-        response?.downloadUrl ||
-        response?.url ||
-        response?.data?.downloadUrl;
-
-      if (!downloadUrl) {
+      if (!response?.blob) {
         throw new Error(
-          "Report was generated, but no download link was returned."
+          "No report file was returned by the server."
         );
       }
 
-      setSuccess("Report generated successfully.");
+      const blob = new Blob(
+        [response.blob],
+        {
+          type: "text/csv;charset=utf-8;",
+        }
+      );
 
-      window.open(
-        downloadUrl,
-        "_blank",
-        "noopener,noreferrer"
+      if (blob.size === 0) {
+        throw new Error(
+          "The generated report is empty."
+        );
+      }
+
+      blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = blobUrl;
+
+      link.download =
+        response.filename ||
+        `equipshare-${reportType}-report-${rangeDays}days.csv`;
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+      setSuccess(
+        "Report generated and downloaded successfully."
       );
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
+      let message = "Failed to generate report.";
+
+      // Axios may return backend JSON errors as Blob
+      // because responseType is set to "blob".
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const errorData = JSON.parse(
+            await err.response.data.text()
+          );
+
+          message =
+            errorData.message || message;
+        } catch {
+          // Use the default error message.
+        }
+      } else {
+        message =
+          err?.response?.data?.message ||
           err?.message ||
-          "Failed to generate report."
-      );
+          message;
+      }
+
+      setError(message);
     } finally {
+      // Allow the browser to start downloading
+      // before releasing the temporary URL.
+      if (blobUrl) {
+        window.setTimeout(() => {
+          window.URL.revokeObjectURL(blobUrl);
+        }, 1000);
+      }
+
       setLoading(false);
     }
   };

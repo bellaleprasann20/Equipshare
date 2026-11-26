@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export async function fetchDashboardSummary() {
@@ -21,14 +22,19 @@ export async function fetchBaselineComparison() {
 }
 
 export async function requestReport({ type, rangeDays }) {
-  const { data } = await api.post("/analytics/reports", {
-    type,
-    rangeDays: Number(rangeDays),
-  });
+  const response = await api.post(
+    "/analytics/reports",
+    {
+      type,
+      rangeDays: Number(rangeDays),
+    },
+    {
+      responseType: "blob",
+    }
+  );
 
-  if (!data?.downloadUrl) {
-    throw new Error("Report was generated but no download link was returned.");
-  }
-
-  return data;
+  return {
+    blob: response.data,
+    filename: `equipshare-${type}-report-${rangeDays}days.csv`,
+  };
 }

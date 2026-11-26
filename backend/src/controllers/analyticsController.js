@@ -489,36 +489,316 @@ export async function getBaselineComparison(req, res) {
   });
 }
 
+function escapeCsv(value) {
+  if (value === null || value === undefined) return "";
+
+  const text = String(value);
+
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  return text;
+}
+
+function createCsv(rows) {
+  return "\uFEFF" + rows
+    .map((row) => row.map(escapeCsv).join(","))
+    .join("\r\n");
+}
+
+function formatDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toISOString().split("T")[0];
+}
 /* =========================================================
    POST /api/analytics/reports
 ========================================================= */
 
 export async function generateReport(req, res) {
-  const { type, rangeDays } = req.body;
+  try {
+    const { type, rangeDays } = req.body;
 
-  const allowedTypes = [
-    "utilization",
-    "maintenance",
-    "allocation",
-    "cost",
-  ];
+    const allowedTypes = [
+      "utilization",
+      "maintenance",
+      "allocation",
+      "cost",
+    ];
 
-  const allowedRanges = [30, 90, 365];
+    const allowedRanges = [30, 90, 365];
+    const days = Number(rangeDays);
 
-  if (!allowedTypes.includes(type)) {
-    return res.status(400).json({
-      message: "Invalid report type.",
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).json({
+        message: "Invalid report type.",
+      });
+    }
+
+    if (!allowedRanges.includes(days)) {
+      return res.status(400).json({
+        message: "Invalid report range.",
+      });
+    }
+
+    const generatedAt = new Date();
+    const startDate = new Date(
+      generatedAt.getTime() - days * 24 * 60 * 60 * 1000
+    );
+
+    let rows = [];
+
+    /* =========================================
+       UTILIZATION REPORT
+    ========================================= */
+
+    if (type === "utilization") {
+      const equipmentList = await Equipment.find({})
+        .sort({ name: 1 })
+        .lean();
+
+      const fleetCostRange =
+        computeFleetCostRange(equipmentList);
+
+      rows.push([
+        "Equipment ID",
+        "Equipment Name",
+        "Type",
+        "Location",
+        "Availability",
+        "Operating Hours (Last 30 Days)",
+        "Idle Hours (Last 30 Days)",
+        "Utilization (%)",
+        "EEI Score",
+        "Snapshot Date",
+      ]);
+
+      for (const equipment of equipmentList) {
+        const { utilization, idle } =
+          calculateUtilization(equipment);
+
+        const eei = calculateEEI(
+          equipment,
+          fleetCostRange
+        );
+
+        rows.push([
+          equipment._id,
+          equipment.name,
+          equipment.type,
+          equipment.location,
+          equipment.availability,
+          equipment.operatingHoursLast30Days,
+          equipment.idleHoursLast30Days,
+          utilization,
+          eei?.score ?? "",
+          formatDate(generatedAt),
+        ]);
+      }
+    }
+
+    /* =========================================
+       MAINTENANCE REPORT
+    ========================================= */
+
+    if (type === "maintenance") {
+      const equipmentList = await Equipment.find({})
+        .sort({ name: 1 })
+        .lean();
+
+      rows.push([
+        "Equipment ID",
+        "Equipment Name",
+        "Type",
+        "Location",
+        "Last Service Date",
+        "Maintenance Interval (Days)",
+        "Days Since Service",
+        "Next Service Due",
+        "Maintenance Status",
+        "Breakdown Count",
+        "Total Jobs Assigned",
+      ]);
+
+      for (const equipment of equipmentList) {
+        const interval =
+          Number(equipment.maintenanceIntervalDays) || 90;
+
+        const lastService = equipment.lastServiceDate
+          ? new Date(equipment.lastServiceDate)
+          : null;
+
+        const validServiceDate =
+          lastService &&
+          !Number.isNaN(lastService.getTime());
+
+        const daysSince = validServiceDate
+          ? Math.floor(
+              (generatedAt.getTime() -
+                lastService.getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null;
+
+        const nextDue = validServiceDate
+          ? new Date(
+              lastService.getTime() +
+                interval * 24 * 60 * 60 * 1000
+            )
+          : null;
+
+        let maintenanceStatus = "No service record";
+
+        if (validServiceDate) {
+          if (daysSince >= interval) {
+            maintenanceStatus = "Overdue";
+          } else if (daysSince >= interval - 14) {
+            maintenanceStatus = "Due Soon";
+          } else {
+            maintenanceStatus = "On Schedule";
+          }
+        }
+
+        rows.push([
+          equipment._id,
+          equipment.name,
+          equipment.type,
+          equipment.location,
+          formatDate(lastService),
+          interval,
+          daysSince ?? "",
+          formatDate(nextDue),
+          maintenanceStatus,
+          equipment.breakdownCount || 0,
+          equipment.totalJobsAssigned || 0,
+        ]);
+      }
+    }
+
+    /* =========================================
+       ALLOCATION REPORT
+    ========================================= */
+
+    if (type === "allocation") {
+      const requests = await AllocationRequest.find({
+        createdAt: { $gte: startDate },
+      })
+        .populate("projectId", "name location")
+        .populate("allocatedEquipmentId", "name type")
+        .populate("rankedResults.equipmentId", "name type")
+        .sort({ createdAt: -1 })
+        .lean();
+
+      rows.push([
+        "Request ID",
+        "Project Name",
+        "Project Location",
+        "Requested Equipment Type",
+        "Allocated Equipment",
+        "Allocated Equipment Type",
+        "Request Status",
+        "Required From",
+        "Required To",
+        "Allocation Score",
+        "Ranked Candidates",
+        "Created Date",
+      ]);
+
+      for (const request of requests) {
+        const allocated = request.allocatedEquipmentId;
+
+        rows.push([
+          request._id,
+          request.projectId?.name || "",
+          request.projectLocation || "",
+          request.equipmentType,
+          allocated?.name || "",
+          allocated?.type || "",
+          request.status,
+          formatDate(request.requiredFrom),
+          formatDate(request.requiredTo),
+          request.allocationScore ?? "",
+          request.rankedResults?.length || 0,
+          formatDate(request.createdAt),
+        ]);
+      }
+    }
+
+    /* =========================================
+       COST REPORT
+    ========================================= */
+
+    if (type === "cost") {
+      const orders = await Order.find({
+        createdAt: { $gte: startDate },
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      rows.push([
+        "Order ID",
+        "Order Date",
+        "Customer",
+        "Equipment Name",
+        "Equipment Type",
+        "Purchase Mode",
+        "Rental Days",
+        "Unit Price (INR)",
+        "Line Total (INR)",
+        "Order Status",
+        "Payment Method",
+      ]);
+
+      for (const order of orders) {
+        for (const item of order.items || []) {
+          rows.push([
+            order._id,
+            formatDate(order.createdAt),
+            order.contactName,
+            item.name,
+            item.type,
+            item.mode,
+            item.days || 0,
+            item.unitPrice,
+            item.lineTotal,
+            order.status,
+            order.paymentMethod,
+          ]);
+        }
+      }
+    }
+
+    const csv = createCsv(rows);
+
+    const filename =
+      `equipshare-${type}-report-${days}days.csv`;
+
+    res.setHeader(
+      "Content-Type",
+      "text/csv; charset=utf-8"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"`
+    );
+
+    res.setHeader(
+      "X-Report-Generated",
+      generatedAt.toISOString()
+    );
+
+    return res.status(200).send(csv);
+  } catch (error) {
+    console.error("generateReport:", error);
+
+    return res.status(500).json({
+      message: "Failed to generate report.",
     });
   }
-
-  if (!allowedRanges.includes(Number(rangeDays))) {
-    return res.status(400).json({
-      message: "Invalid report range.",
-    });
-  }
-
-  return res.status(501).json({
-    message:
-      "Report generation is not implemented yet.",
-  });
 }
